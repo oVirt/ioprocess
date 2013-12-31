@@ -1,0 +1,44 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.69])
+AC_INIT([ioprocess], [0.3], [smizrahi@redhat.com])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_SRCDIR([src/exported-functions.c])
+AC_CONFIG_HEADERS([config.h])
+
+AM_INIT_AUTOMAKE([-Wno-portability])
+
+# Checks for programs.
+AC_PROG_CC
+AM_PATH_PYTHON([2.6])
+
+# Checks for libraries.
+# FIXME: Replace `main' with a function in `-lyajl':
+AC_CHECK_LIB([yajl], [main])
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/statvfs.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_SIZE_T
+AC_TYPE_UINT64_T
+
+# Checks for library functions.
+AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([getpagesize memset mkdir rmdir strerror])
+
+PKG_CHECK_MODULES(GLIB2, [glib-2.0])
+PKG_CHECK_MODULES(GTHREAD2, [gthread-2.0])
+
+AC_DEFINE(_GNU_SOURCE, [], "enable _GNU_SOURCE capability macro")
+AC_CHECK_LIB([yajl], [yajl_alloc], [AC_SUBST(YAJL_CFLAGS, "-DYAJL_VERSION=1")
+                                    AC_SUBST(YAJL_LIBS, "-lyajl")],
+                                   [AC_MSG_ERROR([yajl library is missing])])
+AC_CHECK_LIB([yajl], [yajl_config], [AC_SUBST(YAJL_CFLAGS, "-DYAJL_VERSION=2")], [])
+AC_CHECK_HEADERS([yajl/yajl_parse.h], [], [AC_MSG_ERROR([yajl headers missing])])
+AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
+
+AC_OUTPUT([Makefile
+                 src/Makefile])
