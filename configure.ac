@@ -59,4 +59,6 @@ AC_CHECK_HEADERS([yajl/yajl_parse.h], [], [AC_MSG_ERROR([yajl headers missing])]
 AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 
 AC_OUTPUT([Makefile
-                 src/Makefile])
+           src/Makefile
+	   bindings/Makefile
+	   bindings/python/Makefile])
