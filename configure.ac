@@ -4,7 +4,7 @@
 AC_PREREQ([2.69])
 AC_INIT([ioprocess], [0.3], [smizrahi@redhat.com])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_CONFIG_SRCDIR([src/exported-functions.c])
+AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([-Wno-portability])
@@ -30,10 +30,6 @@ fi
 
 
 AM_PATH_PYTHON([2.6])
-
-# Checks for libraries.
-# FIXME: Replace `main' with a function in `-lyajl':
-AC_CHECK_LIB([yajl], [main])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/statvfs.h unistd.h])

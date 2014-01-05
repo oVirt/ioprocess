@@ -1,5 +1,3 @@
-SUBDIRS = ioprocess
-
 check-local:
 	nosetests test/test.py
 
