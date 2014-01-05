@@ -29,7 +29,7 @@ from unittest import TestCase
 import logging
 
 IOProcess.IOPROCESS_EXE = os.path.join(os.path.dirname(__file__),
-                                       "../../src/ioprocess")
+                                       "../../../src/ioprocess")
 IOProcess._DEBUG_VALGRIND = False
 
 

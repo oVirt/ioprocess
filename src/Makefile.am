@@ -28,4 +28,5 @@ ioprocess_HEADERS = \
 	exported-functions.h \
 	json-dom.h \
 	json-dom-generator.h \
+	json-dom-parser.h \
         $(NULL)
