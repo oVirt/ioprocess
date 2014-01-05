@@ -6,4 +6,4 @@ dist-hook:
 	tar -xvf dist/ioprocess-*.tar* -C $(distdir) --strip-components=1
 
 install-data-local:
-	$(PYTHON) ./setup.py install --prefix $(prefix)
+	$(PYTHON) ./setup.py install --prefix $(DESTDIR)$(prefix)

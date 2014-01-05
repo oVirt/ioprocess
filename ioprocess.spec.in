@@ -1,0 +1,42 @@
+Name:		ioprocess
+Version:	@VERSION@
+Release:	@RELEASE@%{?dist}
+Summary:	Slave process to perform risky IO
+
+Group:	        System Environment/Base
+License:	GPLv2+
+URL:		https://github.com/ficoos/ioprocess
+Source0:	ioprocess-@VERSION@.tar.gz
+
+BuildRequires:	glib2-devel
+BuildRequires:	yajl-devel
+BuildRequires:	python
+Requires:	yajl
+Requires:	python
+
+%description
+Slave process to perform risky IO.
+
+
+%prep
+%setup -q
+
+
+%build
+%configure
+make %{?_smp_mflags}
+
+
+%install
+make install DESTDIR=%{buildroot}
+
+
+%files
+%{python_sitelib}/ioprocess-*.egg-info
+%{python_sitelib}/ioprocess/*.py*
+%{_libexecdir}/ioprocess
+%doc README.md COPYING AUTHORS
+
+%changelog
+* Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
+Inital RPM release

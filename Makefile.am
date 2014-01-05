@@ -19,3 +19,22 @@
 #
 
 SUBDIRS = src bindings
+
+.PHONY: srpm rpm
+
+srpm: dist
+	rpmbuild -ts $(DIST_ARCHIVES)
+
+rpm: dist
+	rpmbuild -ta $(DIST_ARCHIVES)
+
+EXTRA_DIST = ioprocess.spec.in \
+	     ioprocess.spec \
+	     README.md \
+	     $(NULL)
+
+CLEANFILES = ioprocess.spec \
+	     $(NULL)
+
+all-local: ioprocess.spec \
+	   $(NULL)

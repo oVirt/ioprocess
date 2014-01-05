@@ -24,3 +24,5 @@ Makefile.in
 /src/.deps/
 /src/ioprocess
 /ioprocess-*.tar.gz
+
+/ioprocess.spec

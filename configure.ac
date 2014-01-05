@@ -7,6 +7,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
+AC_SUBST(RELEASE, 1)
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
@@ -57,4 +58,5 @@ AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 AC_OUTPUT([Makefile
 	   bindings/Makefile
 	   bindings/python/Makefile
+	   ioprocess.spec
            src/Makefile])
