@@ -24,7 +24,7 @@ ioprocess_SOURCES = \
 	exported-functions.c \
 	ioprocess.c
 
-ioprocess_HEADERS = \
+noinst_HEADERS = \
 	exported-functions.h \
 	json-dom.h \
 	json-dom-generator.h \
