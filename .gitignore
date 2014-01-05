@@ -7,9 +7,9 @@
 Makefile
 Makefile.in
 
-build-aux/depcomp
-build-aux/install-sh
-build-aux/missing
+/build-aux/depcomp
+/build-aux/install-sh
+/build-aux/missing
 
 /autom4te.cache/
 
