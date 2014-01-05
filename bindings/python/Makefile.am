@@ -7,3 +7,6 @@ dist-hook:
 
 install-data-local:
 	$(PYTHON) ./setup.py install --prefix $(DESTDIR)$(prefix)
+
+EXTRA_DIST = VERSION.in \
+	     $(NULL)

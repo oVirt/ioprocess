@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='ioprocess',
-      version='0.3',
+      version=open('VERSION').read().strip(),
       description='Creates a subprocess in simpler safer manner',
       license="GNU GPLv2+",
       author='Saggi Mizrahi',
