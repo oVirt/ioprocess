@@ -9,8 +9,26 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([-Wno-portability])
 
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          Enable debugging information],
+              USE_DEBUG="$enableval", USE_DEBUG="no")
+
 # Checks for programs.
+${CFLAGS=""}
 AC_PROG_CC
+AC_PROG_CC_C99
+CFLAGS="$CFLAGS --pedantic -Wall -Wextra -Werror -Wno-missing-field-initializers"
+
+if test $USE_DEBUG = yes ; then
+	DEBUG=1
+	CFLAGS="$CFLAGS -g"
+else
+	DEBUG=0
+	CFLAGS="$CFLAGS -O2"
+fi
+
+
+
 AM_PATH_PYTHON([2.6])
 
 # Checks for libraries.

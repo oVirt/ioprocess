@@ -19,8 +19,12 @@
 #include "exported-functions.h"
 #include <limits.h>
 
+#define IOPROCESS_COMMUNICATION_ERROR \
+    g_quark_from_static_string("ioprocess-general-error")
+
 int READ_PIPE_FD = -1;
 int WRITE_PIPE_FD = -1;
+gboolean KEEP_FDS = FALSE;
 
 static GOptionEntry entries[] =
 {
@@ -28,8 +32,22 @@ static GOptionEntry entries[] =
     &READ_PIPE_FD, "The pipe FD used to get commands from VDSM", "IN_FD"},
   { "write-pipe-fd", 'w', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
     &WRITE_PIPE_FD, "The pipe FD used to send results back to VDSM", "OUT_FD"},
+  { "keep-fds", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
+    &KEEP_FDS, "Don't close inherited file discriptors when starting", NULL},
   { NULL }
 };
+
+static GError* new_thread_result(int rv) {
+	if (rv == 0) {
+		return NULL;
+	} else {
+		return g_error_new(
+				IOPROCESS_COMMUNICATION_ERROR,
+				rv,
+				strerror(rv));
+	}
+}
+
 
 static GThread* create_thread(const gchar *name,
                               GThreadFunc func,
@@ -190,8 +208,12 @@ static int closeUnrelatedFDs(int whitelist[]) {
         }
         g_debug("Closing unrelated fd no: %s (%s)", fname, filePath);
         if (close(fdNum) < 0) {
-            g_warning("Could not close fd %d: %s", fdNum, strerror(errno));
-            return -errno;
+		switch (errno) {
+		case EBADF:
+			continue;
+		}
+		g_warning("Could not close fd %d: %s", fdNum, strerror(errno));
+		return -errno;
         }
     }
 
@@ -203,6 +225,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
 static int parseCmdLine(int argc, char* argv[]) {
     GError *error = NULL;
     GOptionContext *context;
+    int rv = 0;
 
     context = g_option_context_new ("- process to perform risky IO");
     g_option_context_add_main_entries (context, entries, NULL);
@@ -210,15 +233,19 @@ static int parseCmdLine(int argc, char* argv[]) {
     if (!g_option_context_parse (context, &argc, &argv, &error))
     {
         g_print("option parsing failed: %s\n", error->message);
-        return -1;
+        rv = -1;
+	goto clean;
     }
 
     if (READ_PIPE_FD < 0 || WRITE_PIPE_FD < 0) {
         g_print("option 'read-pipe-fd' and 'write-pipe-fd' are mandatory\n");
-        return -1;
+	rv = -1;
+        goto clean;
     }
+clean:
+    g_option_context_free(context);
 
-    return 0;
+    return rv;
 }
 
 ExportedFunction getCallback(char* methodName) {
@@ -302,8 +329,6 @@ static void* servRequest(void* data) {
     JsonNode* response;
     JsonNode* result = NULL;
 
-    free(data);
-
     g_debug("Extracting request information...");
     extractRequestInfo(reqInfo, &methodName, &reqId, &args, &err);
     if (err) {
@@ -339,6 +364,8 @@ respond:
     g_async_queue_push(responseQueue, response);
 
 clean:
+    free(params);
+
     if (methodName) {
         free(methodName);
     }
@@ -363,7 +390,7 @@ static void* requestHandler(void* data) {
         reqParams = malloc(sizeof(struct RequestParams));
         if (!reqParams) {
             g_warning("Could not allocate request params");
-            exit(ENOMEM);
+	    return new_thread_result(ENOMEM);
         }
         reqParams->reqObj = reqObj;
         reqParams->responseQueue = responseQueue;
@@ -372,8 +399,9 @@ static void* requestHandler(void* data) {
         thread = create_thread("request handler", servRequest, reqParams);
         if (!thread) {
             g_warning("Could not allocate request server thread");
-            exit(ENOMEM);
+	    return new_thread_result(ENOMEM);
         }
+	g_thread_unref(thread);
     }
 }
 
@@ -399,14 +427,14 @@ static void* responseWriter(void* data) {
             JsonNode_free(responseObj);
             if (!buffer) {
                 g_warning("Could not allocate response buffer");
-                exit(EINVAL);
+                return new_thread_result(EINVAL);
             }
 
             g_debug("Sending response sized %lu", bufflen);
 
             if (write(writePipe, &bufflen, sizeof(uint64_t)) < 0) {
                 g_warning("Could not write to pipe: %s", strerror(errno));
-                exit(errno);
+                return new_thread_result(errno);
             }
             bytesWritten = 0;
         }
@@ -418,7 +446,7 @@ static void* responseWriter(void* data) {
             }
 
             g_warning("Could not write to pipe: %s", strerror(errno));
-            exit(errno);
+            return new_thread_result(errno);
         }
 
         bytesWritten += n;
@@ -497,14 +525,14 @@ done:
         free(buffer);
     }
 
-    exit(rv);
+    return new_thread_result(rv);
 }
 
 static int communicate(int readPipe, int writePipe) {
     int rv = 0;
-    GThread* requestReaderThread;
-    GThread* responseWriterThread;
-    GThread* requestHandlerThread;
+    GThread* requestReaderThread = NULL;
+    GThread* responseWriterThread = NULL;
+    GThread* requestHandlerThread = NULL;
     IOProcessCtx ctx;
 
     ctx.readPipe = readPipe;
@@ -537,8 +565,15 @@ static int communicate(int readPipe, int writePipe) {
 
 
     g_thread_join(requestReaderThread);
+    requestReaderThread = NULL;
     rv = 0;
 clean:
+    if (requestHandlerThread) {
+	    g_thread_unref(requestHandlerThread);
+    }
+    if (responseWriterThread) {
+	    g_thread_unref(responseWriterThread);
+    }
     close(ctx.readPipe);
     close(ctx.writePipe);
     g_async_queue_unref(ctx.requestQueue);
@@ -561,11 +596,14 @@ int main(int argc, char* argv[]) {
 
     g_message("Starting ioprocess");
 
-    g_debug("Closing unrelated FDs...");
-    rv = closeUnrelatedFDs(whitelist);
-    if (rv < 0) {
-        g_warning("Could not close unrelated FDs: %s", strerror(-rv));
-        return -rv;
+    if (!KEEP_FDS) {
+	    g_debug("Closing unrelated FDs...");
+	    rv = closeUnrelatedFDs(whitelist);
+	    if (rv < 0) {
+		    g_warning("Could not close unrelated FDs: %s",
+				    strerror(-rv));
+		    return -rv;
+	    }
     }
 
     g_debug("Opening communication channels...");
