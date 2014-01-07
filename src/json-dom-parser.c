@@ -45,15 +45,15 @@ static int jdBuilder_addValue(JsonDomBuilderCtx* ctx, JsonNode* node) {
     }
 
     switch(head->type) {
-        case JT_ARRAY:
-            JsonNode_array_append(head, node, NULL);
-            break;
-        case JT_MAP:
-            JsonNode_map_insert(head, ctx->tmpMapKay->str, node, NULL);
-            break;
-        default:
-            g_warning("Parser Error");
-            return -1;
+    case JT_ARRAY:
+        JsonNode_array_append(head, node, NULL);
+        break;
+    case JT_MAP:
+        JsonNode_map_insert(head, ctx->tmpMapKay->str, node, NULL);
+        break;
+    default:
+        g_warning("Parser Error");
+        return -1;
     }
     return 0;
 }
@@ -95,7 +95,7 @@ static int cb_build_double(void * ctx, double d) {
 static int cb_build_string(void * ctx, const unsigned char* stringVal,
                            t_yajl_size stringLen) {
     JsonNode* node = JsonNode_newFromStringLen((const char*) stringVal,
-                                               stringLen);
+                     stringLen);
     JsonNode_getString(node);
     return cb_build_safeAdd(ctx, node);
 }
@@ -104,13 +104,13 @@ static int cb_build_map_key(void * ctx, const unsigned char * stringVal,
                             t_yajl_size stringLen) {
     JsonDomBuilderCtx* c = (JsonDomBuilderCtx*) ctx;
     g_string_overwrite_len(c->tmpMapKay, 0,
-            (const char*) stringVal, (int) stringLen);
+                           (const char*) stringVal, (int) stringLen);
     g_string_truncate(c->tmpMapKay, stringLen);
     return 1;
 }
 
 static int cb_build_safeContainerAdd(JsonDomBuilderCtx* ctx, JsonNode*
-        container) {
+                                     container) {
     if (!cb_build_safeAdd(ctx, container)) {
         return 0;
     }
@@ -130,8 +130,7 @@ static int cb_build_end_container(void * ctx) {
     return 1;
 }
 
-static int cb_build_start_array(void * ctx)
-{
+static int cb_build_start_array(void * ctx) {
     JsonNode* node = JsonNode_newArray();
     return cb_build_safeContainerAdd((JsonDomBuilderCtx*) ctx, node);
 }
@@ -165,18 +164,18 @@ JsonNode* jdParser_buildDom(const char* buffer, uint64_t bufflen,
 #endif
     if (!parser) {
         g_set_error(err, 0, ENOMEM,
-                "Could not allocate json parser: %s",
-                g_strerror(ENOMEM));
+                    "Could not allocate json parser: %s",
+                    g_strerror(ENOMEM));
         goto clean;
     }
 
     stat = yajl_parse(parser,
-            (const unsigned char*) buffer,
-            (unsigned int) bufflen);
+                      (const unsigned char*) buffer,
+                      (unsigned int) bufflen);
     if (stat != yajl_status_ok) {
         g_set_error(err, 0, EINVAL,
-                "Could not parse json string: %s",
-                g_strerror(EINVAL));
+                    "Could not parse json string: %s",
+                    g_strerror(EINVAL));
         goto clean;
     }
 
@@ -187,8 +186,8 @@ JsonNode* jdParser_buildDom(const char* buffer, uint64_t bufflen,
 #endif
     if (stat != yajl_status_ok) {
         g_set_error(err, 0, EINVAL,
-                "Could not parse json string: %s",
-                g_strerror(EINVAL));
+                    "Could not parse json string: %s",
+                    g_strerror(EINVAL));
         goto clean;
     }
     result = (JsonNode*) g_queue_peek_tail(ctx.containerStack);

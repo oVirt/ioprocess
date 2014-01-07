@@ -81,7 +81,7 @@ JsonNode* JsonNode_newArray() {
 
 JsonNode* JsonNode_newMap() {
     GHashTable* map = g_hash_table_new_full(g_str_hash, g_str_equal,
-            free, JsonNode_free_cb);
+                                            free, JsonNode_free_cb);
     return JsonNode_new(map, JT_MAP);
 }
 
@@ -148,9 +148,9 @@ GArray* JsonNode_getArray(const JsonNode* node) {
 
 int JsonNode_isContainer(const JsonNode* node) {
     switch(node->type) {
-        case JT_MAP:
-        case JT_ARRAY:
-            return TRUE;
+    case JT_MAP:
+    case JT_ARRAY:
+        return TRUE;
     }
 
     return FALSE;
@@ -166,27 +166,27 @@ void JsonNode_free(JsonNode* node) {
 
     if (node->data) {
         switch(node->type) {
-            case JT_MAP:
-                g_hash_table_remove_all((GHashTable*) node->data);
-                g_hash_table_destroy((GHashTable*) node->data);
-                break;
-            case JT_ARRAY:
-                array = (GArray*) node->data;
-                for (i = 0; ; i++) {
-                    child = g_array_index(array, JsonNode*, i);
-                    if (!child) {
-                        break;
-                    }
-                    JsonNode_free(child);
+        case JT_MAP:
+            g_hash_table_remove_all((GHashTable*) node->data);
+            g_hash_table_destroy((GHashTable*) node->data);
+            break;
+        case JT_ARRAY:
+            array = (GArray*) node->data;
+            for (i = 0; ; i++) {
+                child = g_array_index(array, JsonNode*, i);
+                if (!child) {
+                    break;
                 }
-                g_array_free(array, TRUE);
-                break;
-            case JT_STRING:
-                g_string_free(node->data, TRUE);
-                break;
-            default:
-                free(node->data);
-                break;
+                JsonNode_free(child);
+            }
+            g_array_free(array, TRUE);
+            break;
+        case JT_STRING:
+            g_string_free(node->data, TRUE);
+            break;
+        default:
+            free(node->data);
+            break;
         }
     }
 
@@ -196,23 +196,23 @@ void JsonNode_free(JsonNode* node) {
 /* Auto extract the value, use if you know that the type of the node already */
 void JsonNode_getValue(const JsonNode *node, void* out) {
     switch (JsonNode_getType(node)) {
-        case JT_NULL:
-            *((int*)out) = 0;
-            break;
-        case JT_BOOLEAN:
-            *((int*)out) = JsonNode_getBoolean(node);
-            break;
-        case JT_MAP:
-            *((GHashTable**)out) = JsonNode_getMap(node);
-            break;
-        case JT_STRING:
-            *((GString**)out) = JsonNode_getString(node);
-            break;
-        case JT_LONG:
-            *((long*)out) = JsonNode_getLong(node);
-            break;
-        case JT_ARRAY:
-            *((GArray**)out) = JsonNode_getArray(node);
-            break;
+    case JT_NULL:
+        *((int*)out) = 0;
+        break;
+    case JT_BOOLEAN:
+        *((int*)out) = JsonNode_getBoolean(node);
+        break;
+    case JT_MAP:
+        *((GHashTable**)out) = JsonNode_getMap(node);
+        break;
+    case JT_STRING:
+        *((GString**)out) = JsonNode_getString(node);
+        break;
+    case JT_LONG:
+        *((long*)out) = JsonNode_getLong(node);
+        break;
+    case JT_ARRAY:
+        *((GArray**)out) = JsonNode_getArray(node);
+        break;
     }
 }

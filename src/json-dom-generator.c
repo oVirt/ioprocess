@@ -44,49 +44,49 @@ static void jdGenerator_generate_node(yajl_gen gen, const JsonNode* node) {
     char* key;
     const JsonNode* value;
     switch(node->type) {
-        case JT_NULL:
-            yajl_gen_null(gen);
-            break;
-        case JT_BOOLEAN:
-            yajl_gen_bool(gen, JsonNode_getBoolean(node));
-            break;
-        case JT_LONG:
-            yajl_gen_integer(gen, JsonNode_getLong(node));
-            break;
-        case JT_DOUBLE:
-            yajl_gen_double(gen, JsonNode_getDouble(node));
-            break;
-        case JT_STRING:
-            tmpStr = JsonNode_getString(node);
+    case JT_NULL:
+        yajl_gen_null(gen);
+        break;
+    case JT_BOOLEAN:
+        yajl_gen_bool(gen, JsonNode_getBoolean(node));
+        break;
+    case JT_LONG:
+        yajl_gen_integer(gen, JsonNode_getLong(node));
+        break;
+    case JT_DOUBLE:
+        yajl_gen_double(gen, JsonNode_getDouble(node));
+        break;
+    case JT_STRING:
+        tmpStr = JsonNode_getString(node);
+        yajl_gen_string(gen,
+                        (const unsigned char*) tmpStr->str,
+                        (unsigned int) tmpStr->len);
+        break;
+    case JT_MAP:
+        tmpHashTable = JsonNode_getMap(node);
+        g_hash_table_iter_init(&iter, tmpHashTable);
+        yajl_gen_map_open(gen);
+        while (g_hash_table_iter_next(&iter, (void**) &key, (void**)
+                                      &value)) {
             yajl_gen_string(gen,
-                    (const unsigned char*) tmpStr->str,
-                    (unsigned int) tmpStr->len);
-            break;
-        case JT_MAP:
-            tmpHashTable = JsonNode_getMap(node);
-            g_hash_table_iter_init(&iter, tmpHashTable);
-            yajl_gen_map_open(gen);
-            while (g_hash_table_iter_next(&iter, (void**) &key, (void**)
-                        &value)) {
-                yajl_gen_string(gen,
-                        (const unsigned char*) key,
-                        (unsigned int) strlen(key));
-                jdGenerator_generate_node(gen, value);
+                            (const unsigned char*) key,
+                            (unsigned int) strlen(key));
+            jdGenerator_generate_node(gen, value);
+        }
+        yajl_gen_map_close(gen);
+        break;
+    case JT_ARRAY:
+        yajl_gen_array_open(gen);
+        tmpArray = JsonNode_getArray(node);
+        for (i = 0; ; i++) {
+            value = g_array_index(tmpArray, JsonNode*, i);
+            if (!value) {
+                break;
             }
-            yajl_gen_map_close(gen);
-            break;
-        case JT_ARRAY:
-            yajl_gen_array_open(gen);
-            tmpArray = JsonNode_getArray(node);
-            for (i = 0; ; i++) {
-                value = g_array_index(tmpArray, JsonNode*, i);
-                if (!value) {
-                    break;
-                }
-                jdGenerator_generate_node(gen, value);
-            }
-            yajl_gen_array_close(gen);
-            break;
+            jdGenerator_generate_node(gen, value);
+        }
+        yajl_gen_array_close(gen);
+        break;
     }
 }
 

@@ -30,7 +30,7 @@ static JsonNode* stdApiWrapper(int rv, GError** err) {
 }
 
 static JsonNode* safeGetArg(const JsonNode *args, const char* argName,
-        JsonNodeType argType, GError** err) {
+                            JsonNodeType argType, GError** err) {
     JsonNode* tmp;
 
     if (!args) {
@@ -40,26 +40,26 @@ static JsonNode* safeGetArg(const JsonNode *args, const char* argName,
 
     if (JsonNode_getType(args) != JT_MAP) {
         g_set_error(err, IOPROCESS_ARGUMENT_ERROR,
-                EINVAL, "args must be a map");
+                    EINVAL, "args must be a map");
         return NULL;
     }
 
     tmp = JsonNode_map_lookup(args, argName, err);
     if (!tmp) {
         g_set_error(err, IOPROCESS_ARGUMENT_ERROR, EINVAL,
-                "arg '%s' was not found in list", argName);
+                    "arg '%s' was not found in list", argName);
         return NULL;
     }
 
     if (JsonNode_getType(tmp) != argType) {
         g_set_error(err, IOPROCESS_ARGUMENT_ERROR,
-                EINVAL, "Param '%s' has the wrong type", argName);
+                    EINVAL, "Param '%s' has the wrong type", argName);
     }
     return tmp;
 }
 
 void safeGetArgValue(const JsonNode *args, const char* argName,
-        JsonNodeType argType, void* out, GError** err) {
+                     JsonNodeType argType, void* out, GError** err) {
     GError* tmpError = NULL;
     JsonNode* tmp;
 
@@ -73,7 +73,7 @@ void safeGetArgValue(const JsonNode *args, const char* argName,
 }
 
 void safeGetArgValues(const JsonNode *args, GError** err,
-        int argn, ...) {
+                      int argn, ...) {
     int i;
     char* argName;
     JsonNodeType argType;
@@ -103,9 +103,9 @@ JsonNode* exp_rename(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
 
     safeGetArgValues(args, &tmpError, 2,
-            "oldpath", JT_STRING, &oldpath,
-            "newpath", JT_STRING, &newpath
-            );
+                     "oldpath", JT_STRING, &oldpath,
+                     "newpath", JT_STRING, &newpath
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -117,15 +117,15 @@ JsonNode* exp_rename(const JsonNode* args, GError** err) {
 
 /* Used for testing, simply responds "pong" */
 JsonNode* exp_ping(
-        __attribute__((unused)) const JsonNode* args,
-        __attribute__((unused))GError** err) {
+    __attribute__((unused)) const JsonNode* args,
+    __attribute__((unused))GError** err) {
     return JsonNode_newFromString("pong");
 }
 
 /* Used for testing, returns the memstat. Helps to detect a mem leak */
 JsonNode* exp_memstat(
-        __attribute__((unused))const JsonNode* args,
-        GError** err) {
+    __attribute__((unused))const JsonNode* args,
+    GError** err) {
     uint64_t size;
     uint64_t rss;
     uint64_t shr;
@@ -138,9 +138,9 @@ JsonNode* exp_memstat(
 
     if (fscanf(fd, "%lu %lu %lu",&size, &rss, &shr) < 3) {
         g_set_error(err,
-                IOPROCESS_GENERAL_ERROR,
-                EINVAL,
-                "bad statm format");
+                    IOPROCESS_GENERAL_ERROR,
+                    EINVAL,
+                    "bad statm format");
         goto clean;
     }
     res = JsonNode_newMap();
@@ -155,8 +155,8 @@ clean:
 
 /* Used for testing, simply crashes the ioprocess */
 JsonNode* exp_crash(
-        __attribute__((unused))const JsonNode* args,
-        __attribute__((unused))GError** err) {
+    __attribute__((unused))const JsonNode* args,
+    __attribute__((unused))GError** err) {
     exit(1);
     return NULL;
 }
@@ -168,9 +168,9 @@ JsonNode* exp_echo(const JsonNode* args, GError** err) {
     GString* text;
     JsonNode* res;
     safeGetArgValues(args, &tmpError, 2,
-            "text", JT_STRING, &text,
-            "sleep", JT_LONG, &sleep_sec
-            );
+                     "text", JT_STRING, &text,
+                     "sleep", JT_LONG, &sleep_sec
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -217,9 +217,9 @@ JsonNode* exp_mkdir(const JsonNode* args, GError** err) {
     long mode;
 
     safeGetArgValues(args, &tmpError, 2,
-            "path", JT_STRING, &path,
-            "mode", JT_LONG, &mode
-            );
+                     "path", JT_STRING, &path,
+                     "mode", JT_LONG, &mode
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -235,9 +235,9 @@ JsonNode* exp_chmod(const JsonNode* args, GError** err) {
     long mode;
 
     safeGetArgValues(args, &tmpError, 2,
-            "path", JT_STRING, &path,
-            "mode", JT_LONG, &mode
-            );
+                     "path", JT_STRING, &path,
+                     "mode", JT_LONG, &mode
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -253,8 +253,8 @@ JsonNode* exp_lexists(const JsonNode* args, GError** err) {
     struct stat st;
 
     safeGetArgValues(args, &tmpError, 1,
-            "path", JT_STRING, &path
-            );
+                     "path", JT_STRING, &path
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -275,9 +275,9 @@ JsonNode* exp_access(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
 
     safeGetArgValues(args, &tmpError, 2,
-            "path", JT_STRING, &path,
-            "mode", JT_LONG, &mode
-            );
+                     "path", JT_STRING, &path,
+                     "mode", JT_LONG, &mode
+                    );
 
     if (tmpError) {
         g_propagate_error(err, tmpError);
@@ -293,9 +293,9 @@ JsonNode* exp_link(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
 
     safeGetArgValues(args, &tmpError, 2,
-            "oldpath", JT_STRING, &oldpath,
-            "newpath", JT_STRING, &newpath
-            );
+                     "oldpath", JT_STRING, &oldpath,
+                     "newpath", JT_STRING, &newpath
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -312,8 +312,8 @@ JsonNode* exp_fsyncPath(const JsonNode* args, GError** err) {
     int fd;
 
     safeGetArgValues(args, &tmpError, 1,
-            "path", JT_STRING, &path
-            );
+                     "path", JT_STRING, &path
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -338,9 +338,9 @@ JsonNode* exp_truncate(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
 
     safeGetArgValues(args, &tmpError, 2,
-            "path", JT_STRING, &path,
-            "length", JT_LONG, &length
-            );
+                     "path", JT_STRING, &path,
+                     "length", JT_LONG, &length
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -356,9 +356,9 @@ JsonNode* exp_symlink(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
 
     safeGetArgValues(args, &tmpError, 2,
-            "oldpath", JT_STRING, &oldpath,
-            "newpath", JT_STRING, &newpath
-            );
+                     "oldpath", JT_STRING, &oldpath,
+                     "newpath", JT_STRING, &newpath
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -377,8 +377,8 @@ JsonNode* exp_listdir(const JsonNode* args, GError** err) {
     struct dirent *ep;
 
     safeGetArgValues(args, &tmpError, 1,
-            "path", JT_STRING, &path
-            );
+                     "path", JT_STRING, &path
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -405,7 +405,7 @@ JsonNode* exp_listdir(const JsonNode* args, GError** err) {
         }
 
         JsonNode_array_append(result,
-                JsonNode_newFromString(fname), NULL);
+                              JsonNode_newFromString(fname), NULL);
     }
 
     closedir(dp);
@@ -421,8 +421,8 @@ JsonNode* exp_glob(const JsonNode* args, GError** err) {
     size_t i;
 
     safeGetArgValues(args, &tmpError, 1,
-            "pattern", JT_STRING, &pattern
-            );
+                     "pattern", JT_STRING, &pattern
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -433,21 +433,21 @@ JsonNode* exp_glob(const JsonNode* args, GError** err) {
     memset(&globbuf, 0, sizeof(glob_t));
     rv = glob(pattern->str, GLOB_DOOFFS, NULL, &globbuf);
     switch (rv) {
-        case GLOB_NOSPACE:
-            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR,
-                    ENOMEM);
-            goto clean;
-        case GLOB_ABORTED:
-            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR,
-                    EIO);
-            goto clean;
-        case GLOB_NOMATCH:
-            goto clean;
+    case GLOB_NOSPACE:
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR,
+                             ENOMEM);
+        goto clean;
+    case GLOB_ABORTED:
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR,
+                             EIO);
+        goto clean;
+    case GLOB_NOMATCH:
+        goto clean;
     }
 
     for (i = 0; i < globbuf.gl_pathc; i++) {
         JsonNode_array_append(result,
-                JsonNode_newFromString(globbuf.gl_pathv[i]), NULL);
+                              JsonNode_newFromString(globbuf.gl_pathv[i]), NULL);
     }
 
 clean:
@@ -474,10 +474,10 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
     int blocksize = 512;
 
     safeGetArgValues(args, &tmpError, 3,
-            "path", JT_STRING, &path,
-            "data", JT_STRING, &dataStr,
-            "direct", JT_BOOLEAN, &direct
-            );
+                     "path", JT_STRING, &path,
+                     "data", JT_STRING, &dataStr,
+                     "direct", JT_BOOLEAN, &direct
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -503,9 +503,9 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
     }
 
     fd = open(path->str, flags,
-            S_IRUSR | S_IWUSR |
-            S_IRGRP | S_IWGRP |
-            S_IROTH);
+              S_IRUSR | S_IWUSR |
+              S_IRGRP | S_IWGRP |
+              S_IROTH);
     if (fd < 0) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
         goto clean;
@@ -557,9 +557,9 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     int b64Save = 0;
 
     safeGetArgValues(args, &tmpError, 2,
-            "path", JT_STRING, &path,
-            "direct", JT_BOOLEAN, &direct
-            );
+                     "path", JT_STRING, &path,
+                     "direct", JT_BOOLEAN, &direct
+                    );
 
     if(tmpError) {
         g_propagate_error(err, tmpError);
@@ -593,12 +593,12 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
         if (rd < 0) {
             set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
             convertedLen = g_base64_encode_close(FALSE, b64buff,
-                    &b64State, &b64Save);
+                                                 &b64State, &b64Save);
             goto clean;
         }
 
         convertedLen = g_base64_encode_step((guchar*) buff, rd, FALSE, b64buff,
-                &b64State, &b64Save);
+                                            &b64State, &b64Save);
 
         g_string_append_len(b64str, b64buff, convertedLen);
 

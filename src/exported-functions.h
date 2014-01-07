@@ -24,9 +24,9 @@ struct ExportedFunctionEntry_t {
 typedef struct ExportedFunctionEntry_t ExportedFunctionEntry;
 
 void safeGetArgValues(const JsonNode *args, GError** err,
-        int argn, ...);
+                      int argn, ...);
 void safeGetArgValue(const JsonNode *args, const char* argName,
-        JsonNodeType argType, void* out, GError** err);
+                     JsonNodeType argType, void* out, GError** err);
 
 JsonNode* exp_stat(const JsonNode* args, GError** err);
 JsonNode* exp_symlink(const JsonNode* args, GError** err);
