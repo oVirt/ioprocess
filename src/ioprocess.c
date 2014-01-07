@@ -49,13 +49,14 @@ static GError* new_thread_result(int rv) {
 }
 
 
-static GThread* create_thread(const gchar *name,
+static GThread* create_thread(__attribute__((unused)) const gchar *name,
                               GThreadFunc func,
-                              gpointer data) {
+                              gpointer data,
+			      __attribute__((unused)) gboolean joinable) {
 #if GLIB_CHECK_VERSION(2, 32, 0)
-    return g_thread_new(name, func, data);
+	return g_thread_new(name, func, data);
 #else
-    return g_thread_create(func, data, TRUE, NULL);
+	return g_thread_create(func, data, joinable, NULL);
 #endif
 }
 
@@ -396,12 +397,15 @@ static void* requestHandler(void* data) {
         reqParams->responseQueue = responseQueue;
 
         g_debug("Creating thread for request...");
-        thread = create_thread("request handler", servRequest, reqParams);
+        thread = create_thread("request handler", servRequest, reqParams,
+			       FALSE);
         if (!thread) {
             g_warning("Could not allocate request server thread");
 	    return new_thread_result(ENOMEM);
         }
+#if GLIB_CHECK_VERSION(2, 32, 0)
 	g_thread_unref(thread);
+#endif
     }
 }
 
@@ -540,7 +544,8 @@ static int communicate(int readPipe, int writePipe) {
     ctx.requestQueue = g_async_queue_new();
     ctx.responseQueue = g_async_queue_new();
 
-    requestReaderThread = create_thread("request reader", requestReader, &ctx);
+    requestReaderThread = create_thread("request reader", requestReader, &ctx,
+		    TRUE);
     if (!requestReaderThread) {
         g_warning("Could not allocate request reader thread");
         rv = -ENOMEM;
@@ -548,7 +553,7 @@ static int communicate(int readPipe, int writePipe) {
     }
 
     responseWriterThread = create_thread("response writer", responseWriter,
-                                        &ctx);
+                                        &ctx, TRUE);
     if (!responseWriterThread) {
         g_warning("Could not allocate response writer thread");
         rv = -ENOMEM;
@@ -556,7 +561,7 @@ static int communicate(int readPipe, int writePipe) {
     }
 
     requestHandlerThread = create_thread("request handler", requestHandler,
-                                        &ctx);
+                                        &ctx, TRUE);
     if (!requestHandlerThread) {
         g_warning("Could not allocate request handler thread");
         rv = -ENOMEM;
@@ -569,10 +574,10 @@ static int communicate(int readPipe, int writePipe) {
     rv = 0;
 clean:
     if (requestHandlerThread) {
-	    g_thread_unref(requestHandlerThread);
+	    g_thread_join(requestHandlerThread);
     }
     if (responseWriterThread) {
-	    g_thread_unref(responseWriterThread);
+	    g_thread_join(responseWriterThread);
     }
     close(ctx.readPipe);
     close(ctx.writePipe);
@@ -593,6 +598,9 @@ int main(int argc, char* argv[]) {
 
     g_log_set_handler (NULL, G_LOG_LEVEL_MASK, logfunc, stderr);
 
+#if !GLIB_CHECK_VERSION(2, 32, 0)
+    g_thread_init(NULL);
+#endif
 
     g_message("Starting ioprocess");
 
