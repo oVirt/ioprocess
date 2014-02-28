@@ -36,7 +36,7 @@ IOProcess._DEBUG_VALGRIND = False
 class IOProcessTests(TestCase):
     def setUp(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.proc = IOProcess(timeout=1)
+        self.proc = IOProcess(timeout=1, max_threads=5)
 
     def testPing(self):
         self.assertEquals(self.proc.ping(), "pong")
