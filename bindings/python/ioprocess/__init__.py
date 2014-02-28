@@ -144,7 +144,7 @@ class IOProcess(object):
 
     def __init__(self, max_threads=0, timeout=60):
         self.timeout = timeout
-        self.max_threads = max_threads
+        self._max_threads = max_threads
         self._commandQueue = Queue()
         self._eventFdReciever, self._eventFdSender = os.pipe()
         self._reqId = 0
@@ -162,7 +162,7 @@ class IOProcess(object):
         cmd = [self.IOPROCESS_EXE,
                "--read-pipe-fd", str(hisRead),
                "--write-pipe-fd", str(hisWrite),
-               "--max-threads", str(self.max_threads)]
+               "--max-threads", str(self._max_threads)]
 
         if self._DEBUG_VALGRIND:
             cmd = ["valgrind", "--log-file=ioprocess.valgrind.log",
