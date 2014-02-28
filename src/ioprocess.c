@@ -24,6 +24,7 @@
 
 int READ_PIPE_FD = -1;
 int WRITE_PIPE_FD = -1;
+int MAX_THREADS = 0;
 gboolean KEEP_FDS = FALSE;
 
 static GOptionEntry entries[] = {
@@ -34,6 +35,10 @@ static GOptionEntry entries[] = {
     {
         "write-pipe-fd", 'w', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
         &WRITE_PIPE_FD, "The pipe FD used to send results back to VDSM", "OUT_FD"
+    },
+    {
+        "max-threads", 't', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
+        &MAX_THREADS, "Max threads to be used, 0 for unlimited", "MAX_THREADS"
     },
     {
         "keep-fds", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
@@ -247,6 +252,13 @@ static int parseCmdLine(int argc, char *argv[]) {
         rv = -1;
         goto clean;
     }
+
+    if (MAX_THREADS < 0) {
+      g_print("option 'max-threads' cannot be negative\n");
+      rv = -1;
+      goto clean;
+    }
+
 clean:
     g_option_context_free(context);
 
@@ -322,7 +334,7 @@ struct RequestParams {
     GAsyncQueue *responseQueue;
 };
 
-static void *servRequest(void *data) {
+static void servRequest(void *data, __attribute__((unused)) void *ignore) {
     ExportedFunction callback;
     struct RequestParams *params = (struct RequestParams *) data;
     char *methodName = NULL;
@@ -380,7 +392,6 @@ clean:
     }
 
     JsonNode_free(reqInfo);
-    return NULL;
 }
 
 static void *requestHandler(void *data) {
@@ -388,29 +399,49 @@ static void *requestHandler(void *data) {
     GAsyncQueue *requestQueue = ctx->requestQueue;
     GAsyncQueue *responseQueue = ctx->responseQueue;
     JsonNode *reqObj;
-    GThread *thread;
+    GThreadPool *threadPool;
     struct RequestParams *reqParams;
+    int err = 0;
+
+    threadPool = g_thread_pool_new(servRequest, /* entry point */
+                                   /* pool specific user data */
+                                   NULL,
+                                   /* max threads, -1 for unlimited */
+                                   (!MAX_THREADS) ? -1 : MAX_THREADS,
+                                   /* dont create imitatively,
+                                      share with others */
+                                   FALSE,
+                                   NULL);
+    if (!threadPool) {
+      g_warning("Could not allocate thread pool");
+      return new_thread_result(ENOMEM);
+    }
+
     while TRUE {
-    reqObj = (JsonNode *) g_async_queue_pop(requestQueue);
+        gboolean success;
+        reqObj = (JsonNode *) g_async_queue_pop(requestQueue);
         reqParams = malloc(sizeof(struct RequestParams));
         if (!reqParams) {
             g_warning("Could not allocate request params");
-            return new_thread_result(ENOMEM);
+            err = ENOMEM;
+            break;
         }
         reqParams->reqObj = reqObj;
         reqParams->responseQueue = responseQueue;
 
-        g_debug("Creating thread for request...");
-        thread = create_thread("request handler", servRequest, reqParams,
-        FALSE);
-        if (!thread) {
+        g_debug("Queuing request in the thread pool...");
+        success = g_thread_pool_push(threadPool, reqParams, NULL);
+        if (!success) {
             g_warning("Could not allocate request server thread");
-            return new_thread_result(ENOMEM);
+            err = -ENOMEM;
+            break;
         }
-#if GLIB_CHECK_VERSION(2, 32, 0)
-        g_thread_unref(thread);
-#endif
     }
+
+    /* Flush the thread pool */
+    g_thread_pool_free(threadPool, FALSE, TRUE);
+
+    return new_thread_result(err);
 }
 
 static void *responseWriter(void *data) {
