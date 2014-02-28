@@ -418,7 +418,9 @@ static void *requestHandler(void *data) {
     }
 
     while TRUE {
-        gboolean success;
+#if GLIB_CHECK_VERSION(2, 32, 0)
+	gboolean success;
+#endif
         reqObj = (JsonNode *) g_async_queue_pop(requestQueue);
         reqParams = malloc(sizeof(struct RequestParams));
         if (!reqParams) {
@@ -430,12 +432,16 @@ static void *requestHandler(void *data) {
         reqParams->responseQueue = responseQueue;
 
         g_debug("Queuing request in the thread pool...");
-        success = g_thread_pool_push(threadPool, reqParams, NULL);
+#if GLIB_CHECK_VERSION(2, 32, 0)
+	success = g_thread_pool_push(threadPool, reqParams, NULL);
         if (!success) {
             g_warning("Could not allocate request server thread");
             err = -ENOMEM;
             break;
         }
+#else
+	g_thread_pool_push(threadPool, reqParams, NULL);
+#endif
     }
 
     /* Flush the thread pool */
