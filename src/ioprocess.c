@@ -253,7 +253,7 @@ clean:
     return rv;
 }
 
-ExportedFunction getCallback(char *methodName) {
+static ExportedFunction getCallback(const char *methodName) {
     int i;
     for (i = 0; exportedFunctions[i].name != NULL; i++) {
         if (strcmp(exportedFunctions[i].name, methodName) != 0) {
@@ -288,7 +288,7 @@ static void extractRequestInfo(const JsonNode *reqInfo, char **methodName,
     return;
 }
 
-JsonNode *buildResponse(long id, const GError *err, JsonNode *result) {
+static JsonNode *buildResponse(long id, const GError *err, JsonNode *result) {
     int errcode = 0;
     const char *errstr = "SUCCESS";
     JsonNode *resp;
