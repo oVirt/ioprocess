@@ -8,6 +8,8 @@ AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
 AC_SUBST(RELEASE, 1)
+COMMIT=$(git log -n 1 --format="%H")
+AC_SUBST([COMMIT])
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
