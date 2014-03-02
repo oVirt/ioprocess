@@ -18,7 +18,7 @@ AC_ARG_ENABLE(debug,
 ${CFLAGS=""}
 AC_PROG_CC
 AC_PROG_CC_C99
-CFLAGS="$CFLAGS --pedantic -Wall -Wextra -Werror -Wno-missing-field-initializers"
+CFLAGS="$CFLAGS --pedantic -Wall -Wextra -Werror -Wno-missing-field-initializers -D__STDC_FORMAT_MACROS -D_GNU_SOURCE"
 
 if test $USE_DEBUG = yes ; then
 	DEBUG=1
@@ -47,7 +47,6 @@ AC_CHECK_FUNCS([getpagesize memset mkdir rmdir strerror])
 PKG_CHECK_MODULES(GLIB2, [glib-2.0])
 PKG_CHECK_MODULES(GTHREAD2, [gthread-2.0])
 
-AC_DEFINE(_GNU_SOURCE, [], "enable _GNU_SOURCE capability macro")
 AC_CHECK_LIB([yajl], [yajl_alloc], [AC_SUBST(YAJL_CFLAGS, "-DYAJL_VERSION=1")
                                     AC_SUBST(YAJL_LIBS, "-lyajl")],
                                    [AC_MSG_ERROR([yajl library is missing])])

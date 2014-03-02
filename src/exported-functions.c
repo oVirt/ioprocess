@@ -1,5 +1,3 @@
-#define _GNU_SOURCE /* For O_DIRECT */
-
 #include "exported-functions.h"
 
 #include <stdio.h>
@@ -15,6 +13,7 @@
 #include <glob.h>
 #include <sys/statvfs.h>
 #include <dirent.h>
+#include <inttypes.h>
 
 
 static void set_error_from_errno(GError** err, GQuark domain, int errcode) {
@@ -136,7 +135,7 @@ JsonNode* exp_memstat(
         return NULL;
     }
 
-    if (fscanf(fd, "%lu %lu %lu",&size, &rss, &shr) < 3) {
+    if (fscanf(fd, "%" PRIu64 " %" PRIu64 " %" PRIu64, &size, &rss, &shr) < 3) {
         g_set_error(err,
                     IOPROCESS_GENERAL_ERROR,
                     EINVAL,

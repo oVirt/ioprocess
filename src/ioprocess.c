@@ -1,5 +1,3 @@
-#define _GNU_SOURCE 1
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -11,6 +9,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "json-dom.h"
 #include "json-dom-generator.h"
@@ -471,7 +470,7 @@ static void *responseWriter(void *data) {
                 return new_thread_result(EINVAL);
             }
 
-            g_debug("Sending response sized %lu", bufflen);
+            g_debug("Sending response sized %" PRIu64, bufflen);
 
             if (write(writePipe, &bufflen, sizeof(uint64_t)) < 0) {
                 g_warning("Could not write to pipe: %s", strerror(errno));
@@ -516,7 +515,7 @@ static void *requestReader(void *data) {
                 goto done;
             }
 
-            g_debug("Message size is %lu", reqSize);
+            g_debug("Message size is %" PRIu64, reqSize);
             buffer = malloc(reqSize + 1);
             if (!buffer) {
                 g_warning("Could not allocate request buffer: %s",
