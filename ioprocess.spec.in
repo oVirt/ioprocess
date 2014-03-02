@@ -38,7 +38,7 @@ make install DESTDIR=%{buildroot}
 
 %files
 %{python_sitelib}/ioprocess-*.egg-info
-%{python_sitelib}/ioprocess/*.py*
+%{python_sitelib}/ioprocess/
 %{_libexecdir}/ioprocess
 %doc README.md COPYING AUTHORS
 
