@@ -399,6 +399,7 @@ static void *requestHandler(void *data) {
     GAsyncQueue *requestQueue = ctx->requestQueue;
     GAsyncQueue *responseQueue = ctx->responseQueue;
     JsonNode *reqObj;
+    GError *gerr = NULL;
     GThreadPool *threadPool;
     struct RequestParams *reqParams;
     int err = 0;
@@ -411,15 +412,16 @@ static void *requestHandler(void *data) {
                                    /* dont create imitatively,
                                       share with others */
                                    FALSE,
-                                   NULL);
-    if (!threadPool) {
-      g_warning("Could not allocate thread pool");
-      return new_thread_result(ENOMEM);
+                                   &gerr);
+    if (gerr) {
+      g_warning(gerr->message);
+      err = gerr->code;
+      g_error_free(gerr);
+      gerr = NULL;
+      return new_thread_result(err);
     }
 
     while TRUE {
-        GError *gerr = NULL;
-
         reqObj = (JsonNode *) g_async_queue_pop(requestQueue);
         reqParams = malloc(sizeof(struct RequestParams));
         if (!reqParams) {
@@ -436,6 +438,7 @@ static void *requestHandler(void *data) {
                 g_warning(gerr->message);
                 err = gerr->code;
                 g_error_free(gerr);
+                gerr = NULL;
                 break;
         }
     }
