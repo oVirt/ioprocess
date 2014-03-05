@@ -21,10 +21,10 @@
 #define IOPROCESS_COMMUNICATION_ERROR \
     g_quark_from_static_string("ioprocess-general-error")
 
-int READ_PIPE_FD = -1;
-int WRITE_PIPE_FD = -1;
-int MAX_THREADS = 0;
-gboolean KEEP_FDS = FALSE;
+static int READ_PIPE_FD = -1;
+static int WRITE_PIPE_FD = -1;
+static int MAX_THREADS = 0;
+static gboolean KEEP_FDS = FALSE;
 
 static GOptionEntry entries[] = {
     {
