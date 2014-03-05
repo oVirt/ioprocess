@@ -26,6 +26,17 @@ static int WRITE_PIPE_FD = -1;
 static int MAX_THREADS = 0;
 static gboolean KEEP_FDS = FALSE;
 
+/* Because g_async_queue_push can't take null */
+static int stop_value;
+#define STOP_PTR ((gpointer) &stop_value)
+
+static inline void stop_request_reader(void) {
+    if (READ_PIPE_FD != -1) {
+        close(READ_PIPE_FD);
+        READ_PIPE_FD = -1;
+    }
+}
+
 static GOptionEntry entries[] = {
     {
         "read-pipe-fd", 'r', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
@@ -420,8 +431,15 @@ static void *requestHandler(void *data) {
       return new_thread_result(err);
     }
 
-    while TRUE {
+    while (TRUE) {
+        GError *gerr = NULL;
         reqObj = (JsonNode *) g_async_queue_pop(requestQueue);
+        /* Check if we're stopping */
+        if (reqObj == STOP_PTR) {
+            err = 0;
+            break;
+        }
+
         reqParams = malloc(sizeof(struct RequestParams));
         if (!reqParams) {
             g_warning("Could not allocate request params");
@@ -442,8 +460,14 @@ static void *requestHandler(void *data) {
         }
     }
 
+    /* Initiate shutdown by not accepting any more requests. */
+    stop_request_reader();
+
     /* Flush the thread pool */
     g_thread_pool_free(threadPool, FALSE, TRUE);
+
+    /* Push null to responseQueue to signal we're done */
+    g_async_queue_push(responseQueue, STOP_PTR);
 
     return new_thread_result(err);
 }
@@ -457,27 +481,35 @@ static void *responseWriter(void *data) {
     JsonNode *responseObj;
     int n;
     char *buffer = NULL;
+    void *ret = NULL;
 
-    while TRUE {
-    if (bytesWritten == bufflen) {
-            if (buffer) {
-                free(buffer);
-            }
+    while (TRUE) {
+            if (bytesWritten == bufflen) {
+                if (buffer) {
+                    free(buffer);
+                }
 
-            responseObj = (JsonNode *) g_async_queue_pop(responseQueue);
-            g_debug("Generating json...");
-            buffer = jdGenerator_generate(responseObj, &bufflen);
-            JsonNode_free(responseObj);
-            if (!buffer) {
-                g_warning("Could not allocate response buffer");
-                return new_thread_result(EINVAL);
+                responseObj = (JsonNode *) g_async_queue_pop(responseQueue);
+                if (responseObj == STOP_PTR) {
+                    g_debug("responseWriter received NULL object, "
+                            "terminating\n");
+                    break;
+                }
+                g_debug("Generating json...");
+                buffer = jdGenerator_generate(responseObj, &bufflen);
+                JsonNode_free(responseObj);
+                if (!buffer) {
+                    g_warning("Could not allocate response buffer");
+                    ret = new_thread_result(EINVAL);
+		        break;
             }
 
             g_debug("Sending response sized %" PRIu64, bufflen);
 
             if (write(writePipe, &bufflen, sizeof(uint64_t)) < 0) {
                 g_warning("Could not write to pipe: %s", strerror(errno));
-                return new_thread_result(errno);
+                ret = new_thread_result(errno);
+                break;
             }
             bytesWritten = 0;
         }
@@ -489,11 +521,19 @@ static void *responseWriter(void *data) {
             }
 
             g_warning("Could not write to pipe: %s", strerror(errno));
-            return new_thread_result(errno);
+            ret = new_thread_result(errno);
+            break;
         }
 
         bytesWritten += n;
     }
+
+    /* Stop request reading, and close the pipe as we won't use it anymore
+     * anyway */
+    stop_request_reader();
+    close(WRITE_PIPE_FD);
+
+    return ret;
 }
 
 static void *requestReader(void *data) {
@@ -502,13 +542,13 @@ static void *requestReader(void *data) {
     GAsyncQueue *requestQueue = ctx->requestQueue;
     uint64_t bytesPending = 0;
     uint64_t reqSize = 0;
-    int rv;
+    int rv = 0;
     char *buffer = NULL;
     JsonNode *requestObj = NULL;
     GError *err = NULL;
 
-    while TRUE {
-    if (bytesPending == 0) {
+    while (TRUE) {
+	if (bytesPending == 0) {
             g_debug("Waiting for next request...");
             rv = read(readPipe, &reqSize, sizeof(reqSize));
             g_debug("Receiving request...");
@@ -567,6 +607,9 @@ done:
     if (buffer) {
         free(buffer);
     }
+
+    /* End of requests to requestHandler */
+    g_async_queue_push(requestQueue, STOP_PTR);
 
     return new_thread_result(rv);
 }
