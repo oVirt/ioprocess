@@ -491,7 +491,7 @@ static void *responseWriter(void *data) {
 
                 responseObj = (JsonNode *) g_async_queue_pop(responseQueue);
                 if (responseObj == STOP_PTR) {
-                    g_debug("responseWriter received NULL object, "
+                    g_debug("responseWriter received stop request, "
                             "terminating\n");
                     break;
                 }
@@ -501,7 +501,7 @@ static void *responseWriter(void *data) {
                 if (!buffer) {
                     g_warning("Could not allocate response buffer");
                     ret = new_thread_result(EINVAL);
-		        break;
+		    break;
             }
 
             g_debug("Sending response sized %" PRIu64, bufflen);
