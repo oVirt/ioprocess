@@ -501,7 +501,7 @@ static void *responseWriter(void *data) {
                 if (!buffer) {
                     g_warning("Could not allocate response buffer");
                     ret = new_thread_result(EINVAL);
-		    break;
+                    break;
             }
 
             g_debug("Sending response sized %" PRIu64, bufflen);
@@ -530,8 +530,9 @@ static void *responseWriter(void *data) {
 
     /* Stop request reading, and close the pipe as we won't use it anymore
      * anyway */
-    if (ret)
-    	stop_request_reader();
+    if (ret) {
+        stop_request_reader();
+    }
     close(WRITE_PIPE_FD);
 
     return ret;
@@ -549,7 +550,7 @@ static void *requestReader(void *data) {
     GError *err = NULL;
 
     while (TRUE) {
-	if (bytesPending == 0) {
+        if (bytesPending == 0) {
             g_debug("Waiting for next request...");
             rv = read(readPipe, &reqSize, sizeof(reqSize));
             g_debug("Receiving request...");
