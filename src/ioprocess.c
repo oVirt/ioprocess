@@ -419,7 +419,7 @@ static void *requestHandler(void *data) {
                                    NULL,
                                    /* max threads, -1 for unlimited */
                                    (!MAX_THREADS) ? -1 : MAX_THREADS,
-                                   /* dont create imitatively,
+                                   /* don't create immediately,
                                       share with others */
                                    FALSE,
                                    &gerr);
