@@ -530,7 +530,8 @@ static void *responseWriter(void *data) {
 
     /* Stop request reading, and close the pipe as we won't use it anymore
      * anyway */
-    stop_request_reader();
+    if (ret)
+    	stop_request_reader();
     close(WRITE_PIPE_FD);
 
     return ret;
