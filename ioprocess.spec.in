@@ -17,7 +17,6 @@ BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
 BuildRequires:	python
 Requires:	yajl
-Requires:	python
 
 %description
 Slave process to perform risky IO.
@@ -37,11 +36,23 @@ make install DESTDIR=%{buildroot}
 
 
 %files
-%{python_sitelib}/ioprocess-*.egg-info
-%{python_sitelib}/ioprocess/
 %{_libexecdir}/ioprocess
 %doc README.md COPYING AUTHORS
 
 %changelog
 * Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
 Inital RPM release
+
+%package python-ioprocess
+Summary:        Python bindings for ioprocess
+BuildArch:      noarch
+Requires:       python
+Requires:       ioprocess
+
+%description python-ioprocess
+Python bindings for ioprocess
+
+%files python-ioprocess
+%{python2_sitelib}/ioprocess-*.egg-info
+%{python2_sitelib}/ioprocess/
+
