@@ -43,16 +43,16 @@ make install DESTDIR=%{buildroot}
 * Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
 Inital RPM release
 
-%package python-ioprocess
+%package -n python-ioprocess
 Summary:        Python bindings for ioprocess
 BuildArch:      noarch
 Requires:       python
 Requires:       ioprocess
 
-%description python-ioprocess
+%description -n python-ioprocess
 Python bindings for ioprocess
 
-%files python-ioprocess
+%files -n python-ioprocess
 %{python2_sitelib}/ioprocess-*.egg-info
 %{python2_sitelib}/ioprocess/
 
