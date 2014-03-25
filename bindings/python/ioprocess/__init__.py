@@ -17,7 +17,7 @@ import signal
 
 from cpopen import CPopen
 
-EXT_IOPROCESS = "/usr/local/libexec/ioprocess"
+EXT_IOPROCESS = "/usr/libexec/ioprocess"
 
 Size = Struct("@Q")
 
