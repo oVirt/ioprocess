@@ -1,5 +1,4 @@
-%global commit @COMMIT@
-%global owner ficoos
+%global owner smizrahi
 
 Name:		ioprocess
 Version:	@VERSION@
@@ -9,7 +8,7 @@ Summary:	Slave process to perform risky IO
 Group:		System Environment/Base
 License:	GPLv2+
 URL:		https://github.com/ficoos/ioprocess
-Source0:	https://github.com/%{owner}/%{name}/archive/%{commit}/%{name}-%{version}.tar.gz
+Source0:	https://%{owner}.fedorapeople.org/%{name}/%{name}-%{version}.tar.gz
 
 
 BuildRequires:	python2-devel
