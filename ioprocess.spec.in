@@ -9,13 +9,12 @@ Summary:	Slave process to perform risky IO
 Group:		System Environment/Base
 License:	GPLv2+
 URL:		https://github.com/ficoos/ioprocess
-Source0:        https://github.com/%{owner}/%{name}/archive/%{commit}/%{name}-%{version}.tar.gz
+Source0:	https://github.com/%{owner}/%{name}/archive/%{commit}/%{name}-%{version}.tar.gz
 
 
 BuildRequires:	python2-devel
 BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
-BuildRequires:	python
 Requires:	yajl
 
 %description
@@ -39,15 +38,11 @@ make install DESTDIR=%{buildroot}
 %{_libexecdir}/ioprocess
 %doc README.md COPYING AUTHORS
 
-%changelog
-* Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
-Inital RPM release
-
 %package -n python-ioprocess
-Summary:        Python bindings for ioprocess
-BuildArch:      noarch
-Requires:       python
-Requires:       ioprocess
+Summary:	Python bindings for ioprocess
+BuildArch:	noarch
+Requires:	python
+Requires:	%{name} = %{version}-%{release}
 
 %description -n python-ioprocess
 Python bindings for ioprocess
@@ -56,3 +51,6 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess-*.egg-info
 %{python2_sitelib}/ioprocess/
 
+%changelog
+* Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
+Inital RPM release
