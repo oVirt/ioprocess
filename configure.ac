@@ -7,9 +7,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
+COMMIT=`git log -n 1 --format=%H 2> /dev/null`
+AC_SUBST(COMMIT)
 AC_SUBST(RELEASE, 1)
-COMMIT=$(git log -n 1 --format="%H")
-AC_SUBST([COMMIT])
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
