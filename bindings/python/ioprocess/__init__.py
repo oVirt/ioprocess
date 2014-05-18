@@ -404,11 +404,6 @@ class IOProcess(object):
     def listdir(self, path):
         return self._sendCommand("listdir", {"path": path}, self.timeout)
 
-    # TODO: make test
-    def truncate(self, path, length):
-        return self._sendCommand("access", {"path": path, "length": length},
-                                 self.timeout)
-
     def unlink(self, path):
         return self._sendCommand("unlink", {"path": path}, self.timeout)
 
@@ -456,6 +451,20 @@ class IOProcess(object):
 
     def glob(self, pattern):
         return self._sendCommand("glob", {"pattern": pattern}, self.timeout)
+
+    def touch(self, path, mode):
+        return self._sendCommand("touch",
+                                 {"path": path,
+                                  "mode": mode},
+                                  self.timeout)
+
+    def truncate(self, path, size, mode, excl):
+        return self._sendCommand("truncate",
+                                 {"path": path,
+                                  "size": size,
+                                  "mode": mode,
+                                  "excl": excl},
+                                 self.timeout)
 
     def close(self, sync=True):
         if not self._isRunning:

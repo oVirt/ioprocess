@@ -286,6 +286,90 @@ JsonNode* exp_access(const JsonNode* args, GError** err) {
     return stdApiWrapper(access(path->str, R_OK), err);
 }
 
+JsonNode* exp_touch(const JsonNode* args, GError** err){
+    GString* path = NULL;
+    int fd = -1, rv = 0;
+    long mode;
+    int flags = O_WRONLY | O_CREAT;
+    GError* tmpError = NULL;
+
+    safeGetArgValues(args, &tmpError, 2,
+                     "path", JT_STRING, &path,
+                     "mode", JT_LONG, &mode
+                    );
+
+    if(tmpError) {
+        g_propagate_error(err, tmpError);
+        return NULL;
+    }
+
+    fd = open(path->str, flags, mode);
+    if (fd < 0) {
+        rv = fd;
+        goto clean;
+    }
+
+    rv = futimens(fd, NULL);
+    if (rv < 0) {
+        goto clean;
+    }
+
+clean:
+    if (fd > 0) {
+        close(fd);
+    }
+    return stdApiWrapper(rv ,err);
+}
+
+JsonNode* exp_truncate(const JsonNode* args, GError** err){
+    GString* path = NULL;
+    long mode;
+    long defMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    long size;
+    int fd = -1;
+    int excl = 0;
+    int flags = O_CREAT | O_WRONLY;
+    int rv = 0;
+    GError* tmpError = NULL;
+
+    safeGetArgValues(args, &tmpError, 4,
+                     "path", JT_STRING, &path,
+                     "size", JT_LONG, &size,
+                     "mode", JT_LONG, &mode,
+                     "excl", JT_BOOLEAN, &excl
+                    );
+
+    if(tmpError) {
+        g_propagate_error(err, tmpError);
+        return NULL;
+    }
+
+    if (!mode) {
+        mode = defMode;
+    }
+
+    if (excl) {
+        flags |= O_EXCL;
+    }
+
+    fd = open(path->str, flags, mode);
+    if (fd < 0) {
+        rv = fd;
+        goto clean;
+    }
+
+    rv = ftruncate(fd, size);
+    if (rv < 0) {
+        goto clean;
+    }
+
+clean:
+    if (fd > 0) {
+        close(fd);
+    }
+    return stdApiWrapper(rv ,err);
+}
+
 JsonNode* exp_link(const JsonNode* args, GError** err) {
     GString* oldpath;
     GString* newpath;
@@ -329,24 +413,6 @@ JsonNode* exp_fsyncPath(const JsonNode* args, GError** err) {
 
     close(fd);
     return res;
-}
-
-JsonNode* exp_truncate(const JsonNode* args, GError** err) {
-    GString* path;
-    long length;
-    GError* tmpError = NULL;
-
-    safeGetArgValues(args, &tmpError, 2,
-                     "path", JT_STRING, &path,
-                     "length", JT_LONG, &length
-                    );
-
-    if(tmpError) {
-        g_propagate_error(err, tmpError);
-        return NULL;
-    }
-
-    return stdApiWrapper(truncate(path->str, length), err);
 }
 
 JsonNode* exp_symlink(const JsonNode* args, GError** err) {

@@ -154,6 +154,7 @@ static ExportedFunctionEntry exportedFunctions[] = {
     { "truncate", exp_truncate },
     { "mkdir", exp_mkdir },
     { "fsyncPath", exp_fsyncPath },
+    { "touch", exp_touch },
     { NULL, NULL }
 };
 
