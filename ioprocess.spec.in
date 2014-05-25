@@ -1,5 +1,10 @@
 %global owner smizrahi
 
+#python2_sitelib is declared as python_sitelib in EL6
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%global python2_sitelib %{python_sitelib}
+%endif
+
 Name:		ioprocess
 Version:	@VERSION@
 Release:	@RELEASE@%{?dist}
