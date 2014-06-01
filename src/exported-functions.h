@@ -48,5 +48,6 @@ JsonNode* exp_statvfs(const JsonNode* args, GError** err);
 JsonNode* exp_lexists(const JsonNode* args, GError** err);
 JsonNode* exp_listdir(const JsonNode* args, GError** err);
 JsonNode* exp_mkdir(const JsonNode* args, GError** err);
+JsonNode* exp_touch(const JsonNode* args, GError** err);
 JsonNode* exp_fsyncPath(const JsonNode* args, GError** err);
 #endif
