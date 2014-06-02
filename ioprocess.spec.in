@@ -56,5 +56,9 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
+* Mon Jun 02 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
+Added touch command
+Changed truncate to include setting file mode and creating a file only when one
+doesn't exist
 * Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
 Inital RPM release
