@@ -3,7 +3,7 @@ check-local:
 
 dist-hook:
 	$(PYTHON) setup.py sdist
-	tar -xvf dist/ioprocess-*.tar* -C $(distdir) --strip-components=1
+	tar -xvf dist/ioprocess-$(VERSION).tar* -C $(distdir) --strip-components=1
 
 install-data-local:
 	$(PYTHON) ./setup.py install --prefix $(DESTDIR)$(prefix)
