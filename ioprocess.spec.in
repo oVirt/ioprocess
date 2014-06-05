@@ -46,6 +46,7 @@ make install DESTDIR=%{buildroot}
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
 Requires:	python
+Requires:	python-cpopen
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python-ioprocess
@@ -56,6 +57,8 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
+* Thu Jun 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4.1-1
+Fixed missing dependcy for python bindings
 * Mon Jun 02 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4-1
 Added touch command
 Changed truncate to include setting file mode and creating a file only when one
