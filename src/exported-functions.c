@@ -758,6 +758,7 @@ JsonNode* exp_stat(const JsonNode* args, GError** err) {
     JsonNode_map_insert(res, "st_atime", JsonNode_newFromDouble(st.st_atime), NULL);
     JsonNode_map_insert(res, "st_mtime", JsonNode_newFromDouble(st.st_mtime), NULL);
     JsonNode_map_insert(res, "st_ctime", JsonNode_newFromDouble(st.st_ctime), NULL);
+    JsonNode_map_insert(res, "st_blocks", JsonNode_newFromLong(st.st_blocks), NULL);
 end:
     return res;
 }

@@ -32,7 +32,7 @@ ERR_IOPROCESS_CRASH = 100001
 
 StatResult = namedtuple("StatResult", "st_mode, st_ino, st_dev, st_nlink,"
                                       "st_uid, st_gid, st_size, st_atime,"
-                                      "st_mtime, st_ctime")
+                                      "st_mtime, st_ctime, st_blocks")
 
 StatvfsResult = namedtuple("StatvfsResult", "f_bsize, f_frsize, f_blocks,"
                                             "f_bfree, f_bavail, f_files,"
