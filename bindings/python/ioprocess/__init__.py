@@ -452,9 +452,10 @@ class IOProcess(object):
     def glob(self, pattern):
         return self._sendCommand("glob", {"pattern": pattern}, self.timeout)
 
-    def touch(self, path, mode):
+    def touch(self, path, flags, mode):
         return self._sendCommand("touch",
                                  {"path": path,
+                                  "flags": flags,
                                   "mode": mode},
                                   self.timeout)
 
