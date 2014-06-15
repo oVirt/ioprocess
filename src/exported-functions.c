@@ -559,6 +559,7 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
             set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
             goto clean;
         }
+
         memcpy(tmpBuff, data, dataLen);
         memset(tmpBuff + dataLen, 0, fullBuffSize - dataLen);
         free(data);
@@ -653,6 +654,10 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
      * don't blame them */
     b64str = g_string_new(NULL);
     fd = open(path->str, flags);
+    if (fd < 0) {
+            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+	    goto clean;
+    }
     rd = read(fd, buff, buffsize);
     while (rd > 0) {
         if (rd < 0) {
