@@ -57,6 +57,10 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
+* Sun Jun 15 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.5.0-1
+Fixed missing error check in readfile()
+Added flags arg to fetch()
+Added st_blocks to stat()
 * Thu Jun 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4.1-1
 Fixed missing dependcy for python bindings
 * Mon Jun 02 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4-1
