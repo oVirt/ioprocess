@@ -290,11 +290,14 @@ JsonNode* exp_touch(const JsonNode* args, GError** err){
     GString* path = NULL;
     int fd = -1, rv = 0;
     long mode;
-    int flags = O_WRONLY | O_CREAT;
+    long flags;
+    long defMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    long allFlags = O_WRONLY | O_CREAT;
     GError* tmpError = NULL;
 
-    safeGetArgValues(args, &tmpError, 2,
+    safeGetArgValues(args, &tmpError, 3,
                      "path", JT_STRING, &path,
+                     "flags", JT_LONG, &flags,
                      "mode", JT_LONG, &mode
                     );
 
@@ -303,7 +306,15 @@ JsonNode* exp_touch(const JsonNode* args, GError** err){
         return NULL;
     }
 
-    fd = open(path->str, flags, mode);
+    if (!mode) {
+        mode = defMode;
+    }
+
+    if (flags) {
+        allFlags |= flags;
+    }
+
+    fd = open(path->str, allFlags, mode);
     if (fd < 0) {
         rv = fd;
         goto clean;
@@ -763,6 +774,7 @@ JsonNode* exp_stat(const JsonNode* args, GError** err) {
     JsonNode_map_insert(res, "st_atime", JsonNode_newFromDouble(st.st_atime), NULL);
     JsonNode_map_insert(res, "st_mtime", JsonNode_newFromDouble(st.st_mtime), NULL);
     JsonNode_map_insert(res, "st_ctime", JsonNode_newFromDouble(st.st_ctime), NULL);
+    JsonNode_map_insert(res, "st_blocks", JsonNode_newFromLong(st.st_blocks), NULL);
 end:
     return res;
 }
