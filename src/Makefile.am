@@ -11,10 +11,13 @@ ioprocessdir = .
 ioprocess_CFLAGS = $(GLIB2_CFLAGS) \
 		   $(GTHREAD2_CFLAGS) \
 		   $(YAJL_CFLAGS) \
+		   $(IOPROCESS_CFLAGS) \
+		   $(AM_CFLAGS) \
 		   $(NULL)
 ioprocess_LDFLAGS = $(GLIB2_LIBS) \
 		    $(GTHREAD2_LIBS) \
 		    $(YAJL_LIBS) \
+		    $(AM_LDFLAGS) \
 		    $(NULL)
 
 ioprocess_SOURCES = \

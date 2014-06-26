@@ -17,21 +17,18 @@ AC_ARG_ENABLE(debug,
               USE_DEBUG="$enableval", USE_DEBUG="no")
 
 # Checks for programs.
-${CFLAGS=""}
 AC_PROG_CC
 AC_PROG_CC_C99
-CFLAGS="$CFLAGS --pedantic -Wall -Wextra -Werror -Wno-missing-field-initializers -D__STDC_FORMAT_MACROS -D_GNU_SOURCE"
+IOPROCESS_CFLAGS="--pedantic -Wall -Wextra -Werror -Wno-missing-field-initializers -D__STDC_FORMAT_MACROS -D_GNU_SOURCE"
 
 if test $USE_DEBUG = yes ; then
 	DEBUG=1
-	CFLAGS="$CFLAGS -g"
+	IOPROCESS_CFLAGS+=" -g -O0"
 else
 	DEBUG=0
-	CFLAGS="$CFLAGS -O2"
 fi
 
-
-
+AC_SUBST([IOPROCESS_CFLAGS])
 AM_PATH_PYTHON([2.6])
 
 # Checks for header files.
