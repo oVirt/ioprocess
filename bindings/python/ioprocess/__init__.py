@@ -394,7 +394,7 @@ class IOProcess(object):
                                      self.timeout)
 
         except OSError:
-            #This is how python implements access
+            # This is how python implements access
             return False
 
     def mkdir(self, path, mode=DEFAULT_MKDIR_MODE):
@@ -457,7 +457,7 @@ class IOProcess(object):
                                  {"path": path,
                                   "flags": flags,
                                   "mode": mode},
-                                  self.timeout)
+                                 self.timeout)
 
     def truncate(self, path, size, mode, excl):
         return self._sendCommand("truncate",
