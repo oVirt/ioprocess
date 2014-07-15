@@ -27,3 +27,5 @@ Makefile.in
 
 /ioprocess.spec
 /.ycm_extra_conf.py
+/.lvimrc
+/bindings/python/ioprocess.valgrind.log
