@@ -26,3 +26,4 @@ Makefile.in
 /ioprocess-*.tar.gz
 
 /ioprocess.spec
+/.ycm_extra_conf.py

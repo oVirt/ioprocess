@@ -55,6 +55,7 @@ AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 
 AC_OUTPUT([Makefile
 	   ioprocess.spec
+	   .ycm_extra_conf.py
 	   bindings/Makefile
 	   bindings/python/Makefile
 	   bindings/python/VERSION
