@@ -64,6 +64,7 @@ static GError *new_thread_result(int rv) {
         return g_error_new(
                    IOPROCESS_COMMUNICATION_ERROR,
                    rv,
+                   "%s",
                    strerror(rv));
     }
 }
