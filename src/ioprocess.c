@@ -24,6 +24,7 @@
 static int READ_PIPE_FD = -1;
 static int WRITE_PIPE_FD = -1;
 static int MAX_THREADS = 0;
+static int MAX_QUEUED_REQUESTS = -1;
 static gboolean KEEP_FDS = FALSE;
 
 /* Because g_async_queue_push can't take null */
@@ -49,6 +50,10 @@ static GOptionEntry entries[] = {
     {
         "max-threads", 't', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
         &MAX_THREADS, "Max threads to be used, 0 for unlimited", "MAX_THREADS"
+    },
+    {
+        "max-queued-requests", 'q', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
+        &MAX_QUEUED_REQUESTS, "Max requests to be queued, -1 for unlimited", "MAX_QUEUED_REQUESTS"
     },
     {
         "keep-fds", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
@@ -271,6 +276,13 @@ static int parseCmdLine(int argc, char *argv[]) {
       goto clean;
     }
 
+    if (MAX_QUEUED_REQUESTS >=0 && MAX_THREADS == 0) {
+      g_print("option 'max-queued-requests' only works when a the thread pool "
+              "has been capped\n");
+      rv = -1;
+      goto clean;
+    }
+
 clean:
     g_option_context_free(context);
 
@@ -346,6 +358,33 @@ struct RequestParams {
     GAsyncQueue *responseQueue;
 };
 
+static void servQueueFull(struct RequestParams *params) {
+    GError *gerr = NULL;
+    JsonNode *response = NULL;
+    long reqId = -1;
+    GAsyncQueue *responseQueue = params->responseQueue;
+    safeGetArgValues(params->reqObj, NULL, 1,
+         "id", JT_LONG, &reqId
+    );
+
+    g_set_error(&gerr,
+        IOPROCESS_GENERAL_ERROR,
+        EAGAIN, "%s", strerror(EAGAIN)
+    );
+
+    response = buildResponse(reqId, gerr, NULL);
+    if (!response) {
+        g_warning("(%li) Could not build response object", reqId);
+        goto clean;
+    }
+
+    g_async_queue_push(responseQueue, response);
+clean:
+    if (gerr) {
+        g_error_free(gerr);
+    }
+}
+
 static void servRequest(void *data, __attribute__((unused)) void *ignore) {
     ExportedFunction callback;
     struct RequestParams *params = (struct RequestParams *) data;
@@ -406,6 +445,12 @@ clean:
     JsonNode_free(reqInfo);
 }
 
+static guint g_thread_pool_get_free_threads_num(GThreadPool* threadPool) {
+	guint total = g_thread_pool_get_max_threads(threadPool);
+	guint running = g_thread_pool_get_num_threads(threadPool);
+	return total - running;
+}
+
 static void *requestHandler(void *data) {
     IOProcessCtx *ctx = (IOProcessCtx *) data;
     GAsyncQueue *requestQueue = ctx->requestQueue;
@@ -452,13 +497,21 @@ static void *requestHandler(void *data) {
         reqParams->responseQueue = responseQueue;
 
         g_debug("Queuing request in the thread pool...");
-        g_thread_pool_push(threadPool, reqParams, &gerr);
-        if (gerr) {
-                g_warning(gerr->message);
-                err = gerr->code;
-                g_error_free(gerr);
-                gerr = NULL;
-                break;
+
+        if (MAX_QUEUED_REQUESTS >= 0 &&
+		!g_thread_pool_get_free_threads_num(threadPool) &&
+                g_thread_pool_unprocessed(threadPool) >= (guint) MAX_QUEUED_REQUESTS) {
+            g_warning("Request queue full");
+            servQueueFull(reqParams);
+        } else {
+            g_thread_pool_push(threadPool, reqParams, &gerr);
+            if (gerr) {
+                    g_warning(gerr->message);
+                    err = gerr->code;
+                    g_error_free(gerr);
+                    gerr = NULL;
+                    break;
+            }
         }
     }
 

@@ -38,6 +38,25 @@ class IOProcessTests(TestCase):
         self.log = logging.getLogger(self.__class__.__name__)
         self.proc = IOProcess(timeout=1, max_threads=5)
 
+    def testMaxRequests(self):
+        self.proc = IOProcess(timeout=5, max_threads=1, max_queued_requests=1)
+        t1 = Thread(target=self.proc.echo, args=("hello", 2))
+        t2 = Thread(target=self.proc.echo, args=("hello", 2))
+        t1.start()
+        t2.start()
+
+        try:
+            self.proc.ping()
+        except OSError as e:
+            self.assertEquals(e.errno, errno.EAGAIN)
+        except:
+            self.fail("Expected OSError got %s", type(e))
+        else:
+            self.fail("Expected exception")
+        finally:
+            t1.join()
+            t2.join()
+
     def testPing(self):
         self.assertEquals(self.proc.ping(), "pong")
 
