@@ -30,7 +30,9 @@ import logging
 
 IOProcess.IOPROCESS_EXE = os.path.join(os.path.dirname(__file__),
                                        "../../../src/ioprocess")
-IOProcess._DEBUG_VALGRIND = False
+IOProcess._DEBUG_VALGRIND = os.environ.get("ENABLE_VALGRIND", False)
+
+IOProcess._TRACE_DEBUGGING = True
 
 
 class IOProcessTests(TestCase):

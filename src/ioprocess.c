@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+#include "log.h"
+
 #include "json-dom.h"
 #include "json-dom-generator.h"
 #include "json-dom-parser.h"
@@ -26,6 +28,7 @@ static int WRITE_PIPE_FD = -1;
 static int MAX_THREADS = 0;
 static int MAX_QUEUED_REQUESTS = -1;
 static gboolean KEEP_FDS = FALSE;
+gboolean TRACE_ENABLED = FALSE;
 
 /* Because g_async_queue_push can't take null */
 static int stop_value;
@@ -58,6 +61,10 @@ static GOptionEntry entries[] = {
     {
         "keep-fds", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
         &KEEP_FDS, "Don't close inherited file discriptors when starting", NULL
+    },
+    {
+        "trace-enabled", '\0', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
+        &TRACE_ENABLED, "Enable trace debugging", NULL
     },
     { NULL }
 };
@@ -210,7 +217,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
         }
 
         if (fdNum == dfd) {
-            g_debug("Not closing FD %d because it's the directory fd", fdNum);
+            g_trace("Not closing FD %d because it's the directory fd", fdNum);
             continue;
         }
 
@@ -218,7 +225,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
             closeFlag = FALSE;
             for (i = 0; whitelist[i] != -1; i++) {
                 if (fdNum == whitelist[i]) {
-                    g_debug("Not closing FD %d because it's in whitelist",
+                    g_trace("Not closing FD %d because it's in whitelist",
                             fdNum);
                     closeFlag = TRUE;
                     break;
@@ -234,7 +241,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
         if (readlink(fullPath, filePath, PATH_MAX) < 0) {
             strcpy(fullPath, "(error)");
         }
-        g_debug("Closing unrelated fd no: %s (%s)", fname, filePath);
+        g_trace("Closing unrelated fd no: %s (%s)", fname, filePath);
         if (close(fdNum) < 0) {
             switch (errno) {
             case EBADF:
@@ -405,7 +412,7 @@ static void servRequest(void *data, __attribute__((unused)) void *ignore) {
     }
 
 
-    g_debug("(%li) Finding callback '%s'...", reqId, methodName);
+    g_trace("(%li) Finding callback '%s'...", reqId, methodName);
     callback = getCallback(methodName);
     if (!callback) {
         err = g_error_new(0, EINVAL,
@@ -416,7 +423,7 @@ static void servRequest(void *data, __attribute__((unused)) void *ignore) {
     g_debug("(%li) Got request for method '%s'", reqId, methodName);
     result = callback(args, &err);
 respond:
-    g_debug("(%li) Building response", reqId);
+    g_trace("(%li) Building response", reqId);
 
     if (!result) {
         result = JsonNode_newMap();
@@ -546,11 +553,11 @@ static void *responseWriter(void *data) {
 
                 responseObj = (JsonNode *) g_async_queue_pop(responseQueue);
                 if (responseObj == STOP_PTR) {
-                    g_debug("responseWriter received stop request, "
+                    g_message("responseWriter received stop request, "
                             "terminating\n");
                     break;
                 }
-                g_debug("Generating json...");
+                g_trace("Generating json...");
                 buffer = jdGenerator_generate(responseObj, &bufflen);
                 JsonNode_free(responseObj);
                 if (!buffer) {
@@ -559,7 +566,7 @@ static void *responseWriter(void *data) {
                     break;
             }
 
-            g_debug("Sending response sized %" PRIu64, bufflen);
+            g_trace("Sending response sized %" PRIu64, bufflen);
 
             if (write(writePipe, &bufflen, sizeof(uint64_t)) < 0) {
                 g_warning("Could not write to pipe: %s", strerror(errno));
@@ -606,7 +613,7 @@ static void *requestReader(void *data) {
 
     while (TRUE) {
         if (bytesPending == 0) {
-            g_debug("Waiting for next request...");
+            g_trace("Waiting for next request...");
             rv = read(readPipe, &reqSize, sizeof(reqSize));
             g_debug("Receiving request...");
             if (rv < 0) {
@@ -615,7 +622,7 @@ static void *requestReader(void *data) {
                 goto done;
             }
 
-            g_debug("Message size is %" PRIu64, reqSize);
+            g_trace("Message size is %" PRIu64, reqSize);
             buffer = malloc(reqSize + 1);
             if (!buffer) {
                 g_warning("Could not allocate request buffer: %s",
@@ -643,7 +650,7 @@ static void *requestReader(void *data) {
 
         bytesPending -= rv;
         if (bytesPending == 0) {
-            g_debug("Marshaling message...");
+            g_trace("Marshaling message...");
             err = NULL;
             requestObj = jdParser_buildDom(buffer, reqSize, &err);
             if (!requestObj) {
@@ -656,7 +663,7 @@ static void *requestReader(void *data) {
             free(buffer);
             buffer = NULL;
 
-            g_debug("Queuing request...");
+            g_trace("Queuing request...");
             g_async_queue_push(requestQueue, requestObj);
         }
     }

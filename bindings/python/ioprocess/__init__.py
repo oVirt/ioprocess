@@ -138,6 +138,7 @@ class ResponseReader(object):
 class IOProcess(object):
     IOPROCESS_EXE = EXT_IOPROCESS
     _DEBUG_VALGRIND = False
+    _TRACE_DEBUGGING = False
 
     _log = logging.getLogger("IOProcessClient")
     _sublog = logging.getLogger("IOProcess")
@@ -166,6 +167,9 @@ class IOProcess(object):
                "--max-threads", str(self._max_threads),
                "--max-queued-requests", str(self._max_queued_requests),
                ]
+
+        if self._TRACE_DEBUGGING:
+            cmd.append("--trace-enabled")
 
         if self._DEBUG_VALGRIND:
             cmd = ["valgrind", "--log-file=ioprocess.valgrind.log",

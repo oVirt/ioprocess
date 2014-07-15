@@ -1,0 +1,6 @@
+#include <glib.h>
+
+extern gboolean TRACE_ENABLED;
+
+#define g_trace(...) \
+    if (TRACE_ENABLED) { g_debug(__VA_ARGS__); }
