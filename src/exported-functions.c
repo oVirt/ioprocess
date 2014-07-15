@@ -541,13 +541,12 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
     gsize dataLen;
     int fd = -1;
     int flags = O_WRONLY | O_CREAT | O_TRUNC;
-    int ps = getpagesize();
-    int fullBuffSize;
+    unsigned long ps = 0;
+    int fullBuffSize = -1;
     int rv;
     gsize bwritten;
-    /* It's hard coded in VDSM as well */
-    /* TODO: use libblkid to get true block size */
-    int blocksize = 512;
+    unsigned long blocksize = 0;
+    struct statvfs svfs;
 
     safeGetArgValues(args, &tmpError, 3,
                      "path", JT_STRING, &path,
@@ -560,10 +559,32 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
         return NULL;
     }
 
+    fd = open(path->str, flags,
+              S_IRUSR | S_IWUSR |
+              S_IRGRP | S_IWGRP |
+              S_IROTH);
+    if (fd == -1) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+        goto clean;
+    }
+
     data = (char*) g_base64_decode(dataStr->str, &dataLen);
     if (direct) {
+        if (fstatvfs(fd, &svfs) < 0) {
+            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+            goto clean;
+        }
+
+        blocksize = svfs.f_bsize;
+        ps = svfs.f_frsize;
+
         flags |= O_DIRECT;
-        fullBuffSize = ((dataLen / blocksize) + 1) * blocksize;
+
+        if (dataLen % blocksize == 0) {
+            fullBuffSize = dataLen;
+        } else {
+            fullBuffSize = dataLen + (blocksize - (dataLen % blocksize));
+        }
 
         rv = posix_memalign((void**) &tmpBuff, ps, fullBuffSize);
         if (rv != 0) {
@@ -577,15 +598,6 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
         data = tmpBuff;
         tmpBuff = NULL;
         dataLen = fullBuffSize;
-    }
-
-    fd = open(path->str, flags,
-              S_IRUSR | S_IWUSR |
-              S_IRGRP | S_IWGRP |
-              S_IROTH);
-    if (fd < 0) {
-        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
-        goto clean;
     }
 
     bwritten = 0;
@@ -624,14 +636,16 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
     int direct = 0;
     int fd = -1;
-    char* buff;
+    char* buff = NULL;
     int flags = O_RDONLY;
-    int ps = getpagesize();
-    int buffsize = ps * 4;
-    int b64buffsize = (buffsize / 3 + 1) * 4 + 4;
+    unsigned long ps = 0;
+    unsigned long buffsize = 0;
+    int b64buffsize = 0;
     char* b64buff = NULL;
     int b64State = 0;
     int b64Save = 0;
+    struct statvfs svfs;
+
 
     safeGetArgValues(args, &tmpError, 2,
                      "path", JT_STRING, &path,
@@ -643,12 +657,26 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
         return NULL;
     }
 
+    fd = open(path->str, flags);
+    if (fd == -1) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+        goto clean;
+    }
+
+    if (fstatvfs(fd, &svfs) < 0) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+        goto clean;
+    }
+    buffsize = svfs.f_bsize;
+    ps = svfs.f_frsize;
+    b64buffsize = (buffsize / 3 + 1) * 4 + 4;
+
     /* This is only important for direct reads but it doesn't matter if we have
      * it for regular reads as well */
     rv = posix_memalign((void**) &buff, ps, buffsize);
     if (rv != 0) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, rv);
-        return NULL;
+        goto clean;
     }
 
     b64buff = malloc(b64buffsize);
@@ -664,11 +692,6 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     /* We convert to base64 because json strings don't like some chars and I
      * don't blame them */
     b64str = g_string_new(NULL);
-    fd = open(path->str, flags);
-    if (fd < 0) {
-            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
-	    goto clean;
-    }
     rd = read(fd, buff, buffsize);
     while (rd > 0) {
         if (rd < 0) {
@@ -706,7 +729,9 @@ clean:
         g_string_free(b64str, TRUE);
     }
 
-    free(buff);
+    if (buff) {
+        free(buff);
+    }
 
     return result;
 }
