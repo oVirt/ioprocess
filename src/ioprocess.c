@@ -176,7 +176,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
     /* I use fdopendir so I know what the fd number is so I don't close it mid
      * operation */
     dfd = open("/proc/self/fd/", O_RDONLY);
-    if (dfd < 0) {
+    if (dfd == -1) {
         g_warning("Could not open proc fd dir: %s", strerror(errno));
         return -errno;
     }

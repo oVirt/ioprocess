@@ -315,7 +315,7 @@ JsonNode* exp_touch(const JsonNode* args, GError** err){
     }
 
     fd = open(path->str, allFlags, mode);
-    if (fd < 0) {
+    if (fd == -1) {
         rv = fd;
         goto clean;
     }
@@ -364,7 +364,7 @@ JsonNode* exp_truncate(const JsonNode* args, GError** err){
     }
 
     fd = open(path->str, flags, mode);
-    if (fd < 0) {
+    if (fd == -1) {
         rv = fd;
         goto clean;
     }
@@ -415,7 +415,7 @@ JsonNode* exp_fsyncPath(const JsonNode* args, GError** err) {
     }
 
     fd = open(path->str, O_RDONLY);
-    if (fd < 0) {
+    if (fd == -1) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
         return NULL;
     }
@@ -619,7 +619,7 @@ clean:
         free(tmpBuff);
     }
 
-    if (fd >= 0) {
+    if (fd != -1) {
         close(fd);
     }
 
@@ -721,7 +721,7 @@ clean:
         free(b64buff);
     }
 
-    if (fd >= 0) {
+    if (fd != -1) {
         close(fd);
     }
 
