@@ -32,4 +32,5 @@ noinst_HEADERS = \
 	json-dom.h \
 	json-dom-generator.h \
 	json-dom-parser.h \
+        log.h \
         $(NULL)
