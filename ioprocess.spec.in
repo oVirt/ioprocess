@@ -57,7 +57,7 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
-* Sun Jul 20 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.6.0-1
+* Sun Jul 20 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.6.1-1
 Reduced logging even for debug level
 Added support for block sizes other than 512
 Added the --max-queued-requests argument
