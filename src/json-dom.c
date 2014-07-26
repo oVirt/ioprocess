@@ -106,7 +106,7 @@ void JsonNode_map_insert(JsonNode* parent, const char* key, JsonNode* node, GErr
     map = (GHashTable*) parent->data;
     keyCopy = g_strdup(key);
     if (!keyCopy) {
-        g_set_error(err, 0, ENOMEM, g_strerror(ENOMEM));
+        g_set_error(err, 0, ENOMEM, "%s", g_strerror(ENOMEM));
         return;
     }
 

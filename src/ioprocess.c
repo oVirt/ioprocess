@@ -478,7 +478,7 @@ static void *requestHandler(void *data) {
                                    FALSE,
                                    &gerr);
     if (gerr) {
-      g_warning(gerr->message);
+      g_warning("%s", gerr->message);
       err = gerr->code;
       g_error_free(gerr);
       gerr = NULL;
@@ -513,7 +513,7 @@ static void *requestHandler(void *data) {
         } else {
             g_thread_pool_push(threadPool, reqParams, &gerr);
             if (gerr) {
-                    g_warning(gerr->message);
+                    g_warning("%s", gerr->message);
                     err = gerr->code;
                     g_error_free(gerr);
                     gerr = NULL;
