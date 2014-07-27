@@ -7,6 +7,8 @@
 #include <glib.h>
 #include <string.h>
 
+#include "utils.h"
+
 static void JsonNode_free_cb(void* node) {
     JsonNode_free((JsonNode*) node);
 }
@@ -106,7 +108,7 @@ void JsonNode_map_insert(JsonNode* parent, const char* key, JsonNode* node, GErr
     map = (GHashTable*) parent->data;
     keyCopy = g_strdup(key);
     if (!keyCopy) {
-        g_set_error(err, 0, ENOMEM, "%s", g_strerror(ENOMEM));
+        g_set_error(err, 0, ENOMEM, "%s", iop_strerror(ENOMEM));
         return;
     }
 

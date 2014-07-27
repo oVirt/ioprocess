@@ -41,7 +41,7 @@ AC_TYPE_UINT64_T
 # Checks for library functions.
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([getpagesize memset mkdir rmdir strerror])
+AC_CHECK_FUNCS([getpagesize memset mkdir rmdir])
 
 PKG_CHECK_MODULES(GLIB2, [glib-2.0])
 PKG_CHECK_MODULES(GTHREAD2, [gthread-2.0])

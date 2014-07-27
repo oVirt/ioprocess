@@ -12,6 +12,7 @@
 #include <inttypes.h>
 
 #include "log.h"
+#include "utils.h"
 
 #include "json-dom.h"
 #include "json-dom-generator.h"
@@ -77,7 +78,7 @@ static GError *new_thread_result(int rv) {
                    IOPROCESS_COMMUNICATION_ERROR,
                    rv,
                    "%s",
-                   strerror(rv));
+                   iop_strerror(rv));
     }
 }
 
@@ -189,13 +190,13 @@ static int closeUnrelatedFDs(int whitelist[]) {
      * operation */
     dfd = open("/proc/self/fd/", O_RDONLY);
     if (dfd == -1) {
-        g_warning("Could not open proc fd dir: %s", strerror(errno));
+        g_warning("Could not open proc fd dir: %s", iop_strerror(errno));
         return -errno;
     }
 
     dp = fdopendir(dfd);
     if (dp == NULL) {
-        g_warning("Could not get directory pointer: %s", strerror(errno));
+        g_warning("Could not get directory pointer: %s", iop_strerror(errno));
         return -errno;
     }
 
@@ -212,7 +213,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
 
         if(sscanf(fname, "%d", &fdNum) < 1) {
             g_warning("File '%s' is not an FD representation: %s",
-                      fname, strerror(errno));
+                      fname, iop_strerror(errno));
             continue;
         }
 
@@ -247,7 +248,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
             case EBADF:
                 continue;
             }
-            g_warning("Could not close fd %d: %s", fdNum, strerror(errno));
+            g_warning("Could not close fd %d: %s", fdNum, iop_strerror(errno));
             return -errno;
         }
     }
@@ -377,7 +378,7 @@ static void servQueueFull(struct RequestParams *params) {
     g_warning("(%li) Request queue full", reqId);
     g_set_error(&gerr,
         IOPROCESS_GENERAL_ERROR,
-        EAGAIN, "%s", strerror(EAGAIN)
+        EAGAIN, "%s", iop_strerror(EAGAIN)
     );
 
     response = buildResponse(reqId, gerr, NULL);
@@ -567,7 +568,7 @@ static void *responseWriter(void *data) {
             g_trace("Sending response sized %" PRIu64, bufflen);
 
             if (write(writePipe, &bufflen, sizeof(uint64_t)) < 0) {
-                g_warning("Could not write to pipe: %s", strerror(errno));
+                g_warning("Could not write to pipe: %s", iop_strerror(errno));
                 ret = new_thread_result(errno);
                 break;
             }
@@ -580,7 +581,7 @@ static void *responseWriter(void *data) {
                 continue;
             }
 
-            g_warning("Could not write to pipe: %s", strerror(errno));
+            g_warning("Could not write to pipe: %s", iop_strerror(errno));
             ret = new_thread_result(errno);
             break;
         }
@@ -615,7 +616,7 @@ static void *requestReader(void *data) {
             rv = read(readPipe, &reqSize, sizeof(reqSize));
             g_debug("Receiving request...");
             if (rv < 0) {
-                g_warning("Could not read request size: %s", strerror(errno));
+                g_warning("Could not read request size: %s", iop_strerror(errno));
                 rv = errno;
                 goto done;
             }
@@ -624,7 +625,7 @@ static void *requestReader(void *data) {
             buffer = malloc(reqSize + 1);
             if (!buffer) {
                 g_warning("Could not allocate request buffer: %s",
-                          strerror(errno));
+                          iop_strerror(errno));
 
                 rv = errno;
                 goto done;
@@ -641,7 +642,7 @@ static void *requestReader(void *data) {
                 continue;
             }
 
-            g_warning("Could not read from pipe: %s", strerror(errno));
+            g_warning("Could not read from pipe: %s", iop_strerror(errno));
             rv = errno;
             goto done;
         }
@@ -753,7 +754,7 @@ int main(int argc, char *argv[]) {
         rv = closeUnrelatedFDs(whitelist);
         if (rv < 0) {
             g_warning("Could not close unrelated FDs: %s",
-                      strerror(-rv));
+                      iop_strerror(-rv));
             return -rv;
         }
     }

@@ -5,6 +5,8 @@
 #include <yajl/yajl_parse.h>
 #include <stdint.h>
 
+#include "utils.h"
+
 #if YAJL_VERSION == 2
 #define t_yajl_long long long
 #define t_yajl_size size_t
@@ -165,7 +167,7 @@ JsonNode* jdParser_buildDom(const char* buffer, uint64_t bufflen,
     if (!parser) {
         g_set_error(err, 0, ENOMEM,
                     "Could not allocate json parser: %s",
-                    g_strerror(ENOMEM));
+                    iop_strerror(ENOMEM));
         goto clean;
     }
 
@@ -175,7 +177,7 @@ JsonNode* jdParser_buildDom(const char* buffer, uint64_t bufflen,
     if (stat != yajl_status_ok) {
         g_set_error(err, 0, EINVAL,
                     "Could not parse json string: %s",
-                    g_strerror(EINVAL));
+                    iop_strerror(EINVAL));
         goto clean;
     }
 
@@ -187,7 +189,7 @@ JsonNode* jdParser_buildDom(const char* buffer, uint64_t bufflen,
     if (stat != yajl_status_ok) {
         g_set_error(err, 0, EINVAL,
                     "Could not parse json string: %s",
-                    g_strerror(EINVAL));
+                    iop_strerror(EINVAL));
         goto clean;
     }
     result = (JsonNode*) g_queue_peek_tail(ctx.containerStack);

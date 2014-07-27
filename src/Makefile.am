@@ -25,7 +25,9 @@ ioprocess_SOURCES = \
 	json-dom-generator.c \
 	json-dom-parser.c \
 	exported-functions.c \
-	ioprocess.c
+	ioprocess.c \
+        utils.c \
+        $(NULL)
 
 noinst_HEADERS = \
 	exported-functions.h \
@@ -33,4 +35,5 @@ noinst_HEADERS = \
 	json-dom-generator.h \
 	json-dom-parser.h \
         log.h \
+        utils.h \
         $(NULL)

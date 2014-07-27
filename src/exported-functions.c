@@ -15,9 +15,11 @@
 #include <dirent.h>
 #include <inttypes.h>
 
+#include "utils.h"
+
 
 static void set_error_from_errno(GError** err, GQuark domain, int errcode) {
-    g_set_error(err, domain, errcode, "%s", g_strerror(errcode));
+    g_set_error(err, domain, errcode, "%s", iop_strerror(errcode));
 }
 
 static JsonNode* stdApiWrapper(int rv, GError** err) {
