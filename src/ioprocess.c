@@ -374,6 +374,7 @@ static void servQueueFull(struct RequestParams *params) {
          "id", JT_LONG, &reqId
     );
 
+    g_warning("(%li) Request queue full", reqId);
     g_set_error(&gerr,
         IOPROCESS_GENERAL_ERROR,
         EAGAIN, "%s", strerror(EAGAIN)
@@ -392,7 +393,7 @@ clean:
     }
 }
 
-static void servRequest(void *data, __attribute__((unused)) void *ignore) {
+static void servRequest(void *data, void *queueSlotsLeft) {
     ExportedFunction callback;
     struct RequestParams *params = (struct RequestParams *) data;
     char *methodName = NULL;
@@ -450,15 +451,13 @@ clean:
     }
 
     JsonNode_free(reqInfo);
-}
-
-static guint g_thread_pool_get_free_threads_num(GThreadPool* threadPool) {
-	guint total = g_thread_pool_get_max_threads(threadPool);
-	guint running = g_thread_pool_get_num_threads(threadPool);
-	return total - running;
+    if (MAX_QUEUED_REQUESTS >= 0) {
+        g_atomic_int_inc((gint*) queueSlotsLeft);
+    }
 }
 
 static void *requestHandler(void *data) {
+    gint queueSlotsLeft = MAX_THREADS + MAX_QUEUED_REQUESTS + 1;
     IOProcessCtx *ctx = (IOProcessCtx *) data;
     GAsyncQueue *requestQueue = ctx->requestQueue;
     GAsyncQueue *responseQueue = ctx->responseQueue;
@@ -470,7 +469,7 @@ static void *requestHandler(void *data) {
 
     threadPool = g_thread_pool_new(servRequest, /* entry point */
                                    /* pool specific user data */
-                                   NULL,
+                                   &queueSlotsLeft,
                                    /* max threads, -1 for unlimited */
                                    (!MAX_THREADS) ? -1 : MAX_THREADS,
                                    /* don't create immediately,
@@ -506,10 +505,9 @@ static void *requestHandler(void *data) {
         g_debug("Queuing request in the thread pool...");
 
         if (MAX_QUEUED_REQUESTS >= 0 &&
-		!g_thread_pool_get_free_threads_num(threadPool) &&
-                g_thread_pool_unprocessed(threadPool) >= (guint) MAX_QUEUED_REQUESTS) {
-            g_warning("Request queue full");
+            g_atomic_int_dec_and_test(&queueSlotsLeft)) {
             servQueueFull(reqParams);
+            g_atomic_int_inc(&queueSlotsLeft);
         } else {
             g_thread_pool_push(threadPool, reqParams, &gerr);
             if (gerr) {

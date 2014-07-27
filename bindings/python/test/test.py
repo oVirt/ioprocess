@@ -46,6 +46,9 @@ class IOProcessTests(TestCase):
         t2 = Thread(target=self.proc.echo, args=("hello", 2))
         t1.start()
         t2.start()
+        # Make sure the echo calls are sent prior to the ping otherwise one of
+        # them would fail and ping() would pass
+        time.sleep(0.5)
 
         try:
             self.proc.ping()
@@ -59,6 +62,29 @@ class IOProcessTests(TestCase):
             t1.join()
             t2.join()
 
+    def testMaxRequestsAfterFillingThreadPool(self):
+        self.proc = IOProcess(timeout=5, max_threads=3, max_queued_requests=0)
+        t1 = Thread(target=self.proc.echo, args=("hello", 2))
+        t2 = Thread(target=self.proc.echo, args=("hello", 2))
+        t3 = Thread(target=self.proc.echo, args=("hello", 2))
+        t1.start()
+        t2.start()
+        t3.start()
+
+        for t in (t1, t2, t3):
+            t.join()
+
+        t1 = Thread(target=self.proc.echo, args=("hello", 2))
+        t2 = Thread(target=self.proc.echo, args=("hello", 2))
+        t1.start()
+        t2.start()
+        # Make sure the echo calls are sent prior to the ping otherwise one of
+        # them would fail and ping() would pass
+        time.sleep(0.5)
+        self.proc.ping()
+        t1.join()
+        t2.join()
+
     def testPing(self):
         self.assertEquals(self.proc.ping(), "pong")
 
@@ -71,6 +97,7 @@ class IOProcessTests(TestCase):
                   Brigade Leader: Then you won't feel the bullets when we
                   shoot you."""
                   #(C) BBC - Doctor Who
+
         self.assertEquals(self.proc.echo(data), data)
 
     def testUnicodeEcho(self):
