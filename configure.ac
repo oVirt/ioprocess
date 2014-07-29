@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.6])
-AC_INIT([ioprocess], [0.7.0], [smizrahi@redhat.com])
+AC_INIT([ioprocess], [0.8.0], [smizrahi@redhat.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
@@ -54,9 +54,9 @@ AC_CHECK_HEADERS([yajl/yajl_parse.h], [], [AC_MSG_ERROR([yajl headers missing])]
 AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 
 AC_OUTPUT([Makefile
-	   ioprocess.spec
-	   .ycm_extra_conf.py
-	   bindings/Makefile
-	   bindings/python/Makefile
-	   bindings/python/VERSION
+           ioprocess.spec
+           .ycm_extra_conf.py
+           bindings/Makefile
+           bindings/python/Makefile
+           bindings/python/VERSION
            src/Makefile])
