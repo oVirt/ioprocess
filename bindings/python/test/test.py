@@ -27,12 +27,28 @@ import os
 import shutil
 from unittest import TestCase
 import logging
+from unittest.case import SkipTest
+from functools import wraps
+
 
 IOProcess.IOPROCESS_EXE = os.path.join(os.path.dirname(__file__),
                                        "../../../src/ioprocess")
 IOProcess._DEBUG_VALGRIND = os.environ.get("ENABLE_VALGRIND", False)
 
+_VALGRIND_RUNNING = IOProcess._DEBUG_VALGRIND
+
 IOProcess._TRACE_DEBUGGING = True
+
+
+def skip_in_valgrind(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if _VALGRIND_RUNNING:
+            raise SkipTest("Tests can't be run in valgrind")
+
+        return f(*args, **kwargs)
+
+    return wrapper
 
 
 class IOProcessTests(TestCase):
@@ -181,6 +197,7 @@ class IOProcessTests(TestCase):
 
         self.fail("Exception not raised")
 
+    @skip_in_valgrind
     def testManyRequests(self):
         self.proc.timeout = 30
         # even though we theoretically go back to a stable state, some objects
@@ -247,7 +264,9 @@ class IOProcessTests(TestCase):
             os.close(fd)
             pystat = os.statvfs(path)
             mystat = self.proc.statvfs(path)
-            for f in mystat._fields:
+            for f in ("f_bsize", "f_frsize", "f_blocks",
+                      "f_fsid", "f_flag", "f_namemax"):
+
                 try:
                     getattr(pystat, f)
                 except AttributeError:
