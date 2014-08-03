@@ -95,10 +95,13 @@ static GThread *create_thread(__attribute__((unused)) const gchar *name,
 }
 
 /* A log function that makes output easy to parse */
-static void logfunc (const gchar *log_domain, GLogLevelFlags log_level,
-                     const gchar *message, gpointer user_data) {
-    FILE *stream = (FILE *) user_data;
+static void logfunc(const gchar *log_domain, GLogLevelFlags log_level,
+                    const gchar *message, gpointer user_data) {
+    static const char *format = "%s|%s|%s\n";
+    GAsyncQueue *queue = (GAsyncQueue *) user_data;
     const char *levelStr = NULL;
+    size_t buff_size = -1;
+    char *buff = NULL;
     switch(log_level) {
     case G_LOG_LEVEL_WARNING:
         levelStr = "WARNING";
@@ -113,36 +116,52 @@ static void logfunc (const gchar *log_domain, GLogLevelFlags log_level,
     default:
         levelStr = "ERROR";
     }
-    if (!fwrite(levelStr, strlen(levelStr), sizeof(char), stream)) {
-        return;
-    }
 
-    if (!fwrite("|", 1, sizeof(char), stream)) {
-        return;
-    }
-
-    if (!fwrite(message, strlen(message), sizeof(gchar), stream)) {
-        return;
-    }
-
-    if (log_domain) {
-        if (!fwrite("(", 1, sizeof(char), stream)) {
-            return;
-        }
-
-        if (!fwrite(log_domain, strlen(log_domain), sizeof(gchar), stream)) {
-            return;
-        }
-
-        if (!fwrite(") ", 1, sizeof(char), stream)) {
-            return;
-        }
-    }
-
-    if (!fwrite("\n", 1, sizeof(char), stream)) {
-        return;
+    buff_size = snprintf(NULL, 0, format, levelStr, log_domain, message);
+    buff = calloc(sizeof(char), buff_size + 1);
+    if (buff) {
+        // if we can't allocated the buffer we can't really log
+        snprintf(buff, buff_size + 1, format, levelStr, log_domain, message);
+        g_async_queue_push(queue, buff);
     }
 }
+
+static void *logWriter(void *data) {
+    GAsyncQueue *queue = g_async_queue_new();
+    FILE *stream = (FILE *) data;
+    size_t nchars = -1;
+    size_t n_written = -1;
+    char *text = NULL;
+
+    g_log_set_handler(NULL, G_LOG_LEVEL_MASK, logfunc, queue);
+
+    while (!feof(stream) && !ferror(stream)) {
+        if (n_written == nchars) {
+            if (text) {
+                free(text);
+                text = NULL;
+            }
+            text = (char*) g_async_queue_pop(queue);
+            n_written = 0;
+            nchars = strlen(text);
+        } else {
+            n_written += fwrite(
+                text + n_written,
+                sizeof(char),
+                nchars - n_written,
+                stream
+            );
+        }
+    }
+
+    if (text) {
+        free(text);
+    }
+
+    return NULL;
+}
+
+
 
 static ExportedFunctionEntry exportedFunctions[] = {
     /* testing commands */
@@ -731,6 +750,28 @@ clean:
     return rv;
 }
 
+GThread *log_writer = NULL;
+
+static int setup_logging() {
+    log_writer = create_thread("log writer", logWriter, stderr, TRUE);
+    if (!log_writer) {
+        g_print("Could not allocate request reader thread");
+        return - ENOMEM;
+    }
+
+    return 0;
+}
+
+static void stop_logging() {
+    fclose(stderr);
+    g_message("CLOSE"); // Push a message so that the log thread shuts down;
+
+    if (log_writer) {
+        g_thread_join(log_writer);
+    }
+
+}
+
 int main(int argc, char *argv[]) {
     int rv = 0;
     int whitelist[] = {1, 2, -1, -1, -1};
@@ -741,11 +782,14 @@ int main(int argc, char *argv[]) {
     whitelist[2] = READ_PIPE_FD;
     whitelist[3] = WRITE_PIPE_FD;
 
-    g_log_set_handler (NULL, G_LOG_LEVEL_MASK, logfunc, stderr);
-
 #if !GLIB_CHECK_VERSION(2, 32, 0)
     g_thread_init(NULL);
 #endif
+
+    rv = setup_logging();
+    if (rv < 0) {
+        return -rv;
+    }
 
     g_message("Starting ioprocess");
 
@@ -763,6 +807,7 @@ int main(int argc, char *argv[]) {
     rv = communicate(READ_PIPE_FD, WRITE_PIPE_FD);
 
     g_message("Shutting down ioprocess");
+    stop_logging();
 
     return rv;
 }

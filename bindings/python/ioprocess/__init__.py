@@ -220,7 +220,7 @@ class IOProcess(object):
                 return
 
             try:
-                level, message = line.strip().split("|", 1)
+                level, logDomain, message = line.strip().split("|", 2)
             except:
                 continue
 
