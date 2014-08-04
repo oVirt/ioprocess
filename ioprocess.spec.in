@@ -57,6 +57,9 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
+* Mon Aug 4 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.10.0-1
+Fixed unsef strerror usage
+Fixed cases logging lines get mangled
 * Tue Jul 29 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.8.1-1
 Fixed unsafe use of strerror
 Fixed races in queue limiting
