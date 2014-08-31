@@ -282,7 +282,7 @@ class IOProcess(object):
 
                         res = responseReader.pop()
                         reqId = res['id']
-                        pendingReq = pendingRequests.get(reqId, None)
+                        pendingReq = pendingRequests.pop(reqId, None)
                         if pendingReq is not None:
                             pendingReq.result = res
                             pendingReq.event.set()
