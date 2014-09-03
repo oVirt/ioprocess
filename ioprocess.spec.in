@@ -57,25 +57,28 @@ Python bindings for ioprocess
 %{python2_sitelib}/ioprocess/
 
 %changelog
+* Wed Sep 3 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.12.0-1
+- Fixed memory leak due to forgetting to clear the pending requests queue in
+  the python bindings
 * Mon Aug 4 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.10.0-1
-Fixed unsef strerror usage
-Fixed cases logging lines get mangled
+- Fixed unsef strerror usage
+- Fixed cases logging lines get mangled
 * Tue Jul 29 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.8.1-1
-Fixed unsafe use of strerror
-Fixed races in queue limiting
+- Fixed unsafe use of strerror
+- Fixed races in queue limiting
 * Sun Jul 20 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.6.1-1
-Reduced logging even for debug level
-Added support for block sizes other than 512
-Added the --max-queued-requests argument
+- Reduced logging even for debug level
+- Added support for block sizes other than 512
+- Added the --max-queued-requests argument
 * Sun Jun 15 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.5.0-1
-Fixed missing error check in readfile()
-Added flags arg to fetch()
-Added st_blocks to stat()
+- Fixed missing error check in readfile()
+- Added flags arg to fetch()
+- Added st_blocks to stat()
 * Thu Jun 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4.1-1
-Fixed missing dependcy for python bindings
+- Fixed missing dependcy for python bindings
 * Mon Jun 02 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.4-1
-Added touch command
-Changed truncate to include setting file mode and creating a file only when one
-doesn't exist
+- Added touch command
+- Changed truncate to include setting file mode and creating a file only when
+  one doesn't exist
 * Sun Jan 05 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.3-1
 Inital RPM release

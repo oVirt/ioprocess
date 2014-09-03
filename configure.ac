@@ -2,14 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.6])
-AC_INIT([ioprocess], [0.11.0], [smizrahi@redhat.com])
+AC_INIT([ioprocess], [0.12.0], [smizrahi@redhat.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
 COMMIT=`git log -n 1 --format=%H 2> /dev/null`
 AC_SUBST(COMMIT)
-AC_SUBST(RELEASE, 1)
+AC_SUBST(RELEASE, 2)
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
