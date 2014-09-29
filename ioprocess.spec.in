@@ -20,6 +20,7 @@ BuildRequires:	python2-devel
 BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
 Requires:	yajl
+Requires:	glib2
 
 %description
 Slave process to perform risky IO.
