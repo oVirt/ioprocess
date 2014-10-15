@@ -18,6 +18,14 @@ from weakref import ref
 
 from cpopen import CPopen
 
+try:
+    import vdsm.infra.zombiereaper as zombiereaper
+except ImportError:
+    try:
+        import zombiereaper
+    except ImportError:
+        zombiereaper = None
+
 EXT_IOPROCESS = "/usr/libexec/ioprocess"
 
 Size = Struct("@Q")
@@ -43,6 +51,8 @@ StatvfsResult = namedtuple("StatvfsResult", "f_bsize, f_frsize, f_blocks,"
 DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
                       stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP |
                       stat.S_IROTH | stat.S_IXOTH)
+
+USE_ZOMBIE_REAPER = False
 
 
 # Communicate is a function to prevent the bound method from strong referencing
@@ -156,12 +166,17 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         else:
             proc.kill()
 
+        if USE_ZOMBIE_REAPER and zombiereaper is not None:
+            zombiereaper.autoRipPID(proc.pid)
+        else:
+            Thread(
+                name="ioprocess wait() thread",
+                target=proc.wait,
+            ).start()
+
         real_ioproc = ioproc_ref()
         if real_ioproc is not None and real_ioproc._isRunning:
-            Thread(target=proc.wait).start()
             real_ioproc._run()
-
-        proc.wait()
 
 
 def dict2namedtuple(d, ntType):
