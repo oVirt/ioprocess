@@ -18,6 +18,10 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(__file__))
 from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout
 from threading import Thread
 import time
@@ -29,7 +33,12 @@ from unittest import TestCase
 import logging
 from unittest.case import SkipTest
 from functools import wraps
+from weakref import ref
+import gc
+import pprint
 
+
+elapsed_time = lambda: os.times()[4]
 
 IOProcess.IOPROCESS_EXE = os.path.join(os.path.dirname(__file__),
                                        "../../../src/ioprocess")
@@ -540,6 +549,37 @@ class IOProcessTests(TestCase):
     def testGlobNothing(self):
         remoteMatches = self.proc.glob(os.path.join("/dsadasd", "*"))
         self.assertEquals(remoteMatches, [])
+
+    def testCircularRefs(self):
+        """Make sure there is nothing keepin IOProcess strongly referenced.
+
+        Since there is a comminucation background thread doing all the hard
+        work we need to make sure it doesn't prevent IOProcess from being
+        garbage collected.
+        """
+        proc = IOProcess(timeout=1, max_threads=5)
+        proc = ref(proc)
+
+        max_wait = 10
+        end = elapsed_time() + max_wait
+
+        while True:
+            gc.collect()
+            try:
+                self.assertIsNone(proc())
+            except AssertionError:
+                refs = gc.get_referrers(proc())
+                self.log.info(pprint.pformat(refs))
+                if hasattr(refs[0], "f_code"):
+                    self.log.info(pprint.pformat(refs[0].f_code))
+                del refs
+
+                if (elapsed_time() > end):
+                    raise
+            else:
+                break
+
+            time.sleep(1)
 
     def tearDown(self):
         self.proc.close()

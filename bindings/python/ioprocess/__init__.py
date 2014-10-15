@@ -14,6 +14,7 @@ from base64 import b64decode, b64encode
 import stat
 import time
 import signal
+from weakref import ref
 
 from cpopen import CPopen
 
@@ -42,6 +43,125 @@ StatvfsResult = namedtuple("StatvfsResult", "f_bsize, f_frsize, f_blocks,"
 DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
                       stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP |
                       stat.S_IROTH | stat.S_IXOTH)
+
+
+# Communicate is a function to prevent the bound method from strong referencing
+# ioproc
+def _communicate(ioproc_ref, proc, readPipe, writePipe):
+    real_ioproc = ioproc_ref()
+    if real_ioproc is None:
+        return
+
+    dataSender = None
+    pendingRequests = {}
+    responseReader = ResponseReader(readPipe)
+
+    out = proc.stdout.fileno()
+    err = proc.stderr.fileno()
+
+    poller = poll()
+
+    # When closing the ioprocess there might be race for closing this fd
+    # using a copy solves this
+    try:
+        try:
+            evtReciever = os.dup(real_ioproc._eventFdReciever)
+        except OSError:
+            evtReciever = -1
+            return
+
+        poller.register(out, INPUT_READY_FLAGS)
+        poller.register(err, INPUT_READY_FLAGS)
+        poller.register(evtReciever, INPUT_READY_FLAGS)
+        poller.register(readPipe, INPUT_READY_FLAGS)
+        poller.register(writePipe, ERROR_FLAGS)
+
+        while True:
+            real_ioproc = None
+
+            pollres = NoIntrPoll(poller.poll, 5)
+
+            real_ioproc = ioproc_ref()
+            if real_ioproc is None:
+                break
+
+            if not real_ioproc._isRunning:
+                real_ioproc._log.info("shutdown requested")
+                break
+
+            for fd, event in pollres:
+                if event & ERROR_FLAGS:
+                    # If any FD closed something is wrong
+                    # This is just to trigger the error flow
+                    raise Exception("FD closed")
+
+                if fd in (out, err):
+                    real_ioproc._processLogs(os.read(fd, 1024))
+                    continue
+
+                if fd == readPipe:
+                    if not responseReader.process():
+                        return
+
+                    res = responseReader.pop()
+                    reqId = res['id']
+                    pendingReq = pendingRequests.pop(reqId, None)
+                    if pendingReq is not None:
+                        pendingReq.result = res
+                        pendingReq.event.set()
+                    else:
+                        real_ioproc._log.warning("Unknown request id %d",
+                                                 reqId)
+
+                    continue
+
+                if fd == evtReciever:
+                    os.read(fd, 1)
+                    if dataSender:
+                        continue
+
+                    try:
+                        cmd, resObj = real_ioproc._commandQueue.get_nowait()
+                    except Empty:
+                        continue
+
+                    reqId = real_ioproc._getRequestId()
+                    pendingRequests[reqId] = resObj
+                    reqString = real_ioproc._requestToString(cmd, reqId)
+                    dataSender = DataSender(writePipe, reqString)
+                    poller.modify(writePipe, OUTPUT_READY_FLAGS)
+                    continue
+
+                if fd == writePipe:
+                    if dataSender.process():
+                        dataSender = None
+                        poller.modify(writePipe, ERROR_FLAGS)
+                        real_ioproc._pingPoller()
+    except:
+        real_ioproc._log.error("IOProcess failure", exc_info=True)
+        for request in pendingRequests.itervalues():
+            request.result = {"errcode": ERR_IOPROCESS_CRASH,
+                              "errstr": "ioprocess crashed unexpectedly"}
+            request.event.set()
+
+    finally:
+        os.close(readPipe)
+        os.close(writePipe)
+        if (evtReciever >= 0):
+            os.close(evtReciever)
+
+        if IOProcess._DEBUG_VALGRIND:
+            os.kill(proc.pid, signal.SIGTERM)
+            proc.wait()
+        else:
+            proc.kill()
+
+        real_ioproc = ioproc_ref()
+        if real_ioproc is not None and real_ioproc._isRunning:
+            Thread(target=proc.wait).start()
+            real_ioproc._run()
+
+        proc.wait()
 
 
 def dict2namedtuple(d, ntType):
@@ -190,8 +310,12 @@ class IOProcess(object):
         os.write(self._eventFdSender, "0")
 
     def _startCommunication(self, proc, readPipe, writePipe):
-        self._commthread = Thread(target=self._communicate,
-                                  args=(proc, readPipe, writePipe))
+        args = (ref(self), proc, readPipe, writePipe)
+        self._commthread = Thread(
+            name="ioprocess communication (%d)" % (proc.pid,),
+            target=_communicate,
+            args=args
+        )
         self._commthread.setDaemon(True)
         self._commthread.start()
 
@@ -232,109 +356,6 @@ class IOProcess(object):
                 self._sublog.debug(message)
             elif level == "INFO":
                 self._sublog.info(message)
-
-    def _communicate(self, proc, readPipe, writePipe):
-
-        dataSender = None
-        pendingRequests = {}
-        responseReader = ResponseReader(readPipe)
-
-        out = proc.stdout.fileno()
-        err = proc.stderr.fileno()
-
-        poller = poll()
-
-        # When closing the ioprocess there might be race for closing this fd
-        # using a copy solves this
-        try:
-            try:
-                evtReciever = os.dup(self._eventFdReciever)
-            except OSError:
-                evtReciever = -1
-                return
-
-            poller.register(out, INPUT_READY_FLAGS)
-            poller.register(err, INPUT_READY_FLAGS)
-            poller.register(evtReciever, INPUT_READY_FLAGS)
-            poller.register(readPipe, INPUT_READY_FLAGS)
-            poller.register(writePipe, ERROR_FLAGS)
-
-            while True:
-                pollres = NoIntrPoll(poller.poll)
-                if not self._isRunning:
-                    self._log.info("shutdown requested")
-                    break
-
-                for fd, event in pollres:
-                    if event & ERROR_FLAGS:
-                        # If any FD closed something is wrong
-                        # This is just to trigger the error flow
-                        raise Exception("FD closed")
-
-                    if fd in (out, err):
-                        # TODO: logging
-                        self._processLogs(os.read(fd, 1024))
-                        continue
-
-                    if fd == readPipe:
-                        if not responseReader.process():
-                            return
-
-                        res = responseReader.pop()
-                        reqId = res['id']
-                        pendingReq = pendingRequests.pop(reqId, None)
-                        if pendingReq is not None:
-                            pendingReq.result = res
-                            pendingReq.event.set()
-                        else:
-                            self._log.warning("Unknown request id %d", reqId)
-
-                        continue
-
-                    if fd == evtReciever:
-                        os.read(fd, 1)
-                        if dataSender:
-                            continue
-
-                        try:
-                            cmd, resObj = self._commandQueue.get_nowait()
-                        except Empty:
-                            continue
-
-                        reqId = self._getRequestId()
-                        pendingRequests[reqId] = resObj
-                        reqString = self._requestToString(cmd, reqId)
-                        dataSender = DataSender(writePipe, reqString)
-                        poller.modify(writePipe, OUTPUT_READY_FLAGS)
-                        continue
-
-                    if fd == writePipe:
-                        if dataSender.process():
-                            dataSender = None
-                            poller.modify(writePipe, ERROR_FLAGS)
-                            self._pingPoller()
-        except:
-            self._log.error("IOProcess failure", exc_info=True)
-            for request in pendingRequests.itervalues():
-                request.result = {"errcode": ERR_IOPROCESS_CRASH,
-                                  "errstr": "ioprocess crashed unexpectedly"}
-                request.event.set()
-
-        finally:
-            os.close(readPipe)
-            os.close(writePipe)
-            if (evtReciever >= 0):
-                os.close(evtReciever)
-
-            if self._DEBUG_VALGRIND:
-                os.kill(proc.pid, signal.SIGTERM)
-                proc.wait()
-            else:
-                proc.kill()
-            Thread(target=proc.wait).start()
-
-            if self._isRunning:
-                self._run()
 
     def _sendCommand(self, cmdName, args, timeout=None):
         res = CmdResult()
