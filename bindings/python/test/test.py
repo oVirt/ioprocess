@@ -111,8 +111,7 @@ class IOProcessTests(TestCase):
     def testEcho(self):
         data = """The Doctor: But I don't exist in your world!
                   Brigade Leader: Then you won't feel the bullets when we
-                  shoot you."""
-                  #(C) BBC - Doctor Who
+                  shoot you."""  # (C) BBC - Doctor Who
 
         self.assertEquals(self.proc.echo(data), data)
 
@@ -150,8 +149,7 @@ class IOProcessTests(TestCase):
                   Third Doctor: Yes, pass me a silicon rod.
                                 [Stirs cup of tea with it]
                   Brigadier: I meant is there anything UNIT can do about this
-                  space lightning business?"""
-                  #(C) BBC - Doctor Who
+                  space lightning business?"""  # (C) BBC - Doctor Who
         self.assertEquals(self.proc.echo(data), data)
         self.assertTrue(self.proc.crash())
         self.assertEquals(self.proc.echo(data), data)
@@ -159,8 +157,7 @@ class IOProcessTests(TestCase):
     def testPendingRequestInvalidationOnCrash(self):
         data = """The Doctor: A straight line may be the shortest distance
                   between two points, but it is by no means the most
-                  interesting."""
-                  #(C) BBC - Doctor Who
+                  interesting."""  # (C) BBC - Doctor Who
 
         res = [False]
         self.proc.timeout = 12
@@ -187,8 +184,7 @@ class IOProcessTests(TestCase):
         data = """Madge: Are you the new caretaker?
                   The Doctor: Usually called "The Doctor." Or "The Caretaker."
                   Or "Get off this planet." Though, strictly speaking, that
-                  probably isn't a name."""
-                  #(C) BBC - Doctor Who
+                  probably isn't a name."""  # (C) BBC - Doctor Who
 
         try:
             self.assertEquals(self.proc.echo(data, 10), data)
@@ -207,8 +203,7 @@ class IOProcessTests(TestCase):
         acceptableRSSIncreasKB = 100
         data = """Lily: What's happening?
                   The Doctor: No idea. Just do what I do: hold tight and
-                  pretend it's a plan."""
-                  #(C) BBC - Doctor Who
+                  pretend it's a plan."""  # (C) BBC - Doctor Who
 
         startRSS = self.proc.memstat()['rss']
         # This way we catch evey leak that is more then one 0.1KB per call
@@ -229,8 +224,8 @@ class IOProcessTests(TestCase):
                   Craig: "Not Mum"?
                   The Doctor: That's you! "Also Not Mum", that's me! And every
                               body else is [gets near to hear baby]
-                              "Peasants"! That's a bit unfortunate..."""
-                  #(C) BBC - Doctor Who
+                              "Peasants"! That's a bit unfortunate...
+                """  # (C) BBC - Doctor Who
 
         fd, path = mkstemp()
         try:
@@ -255,8 +250,8 @@ class IOProcessTests(TestCase):
         data = """Peter Puppy: Once again, evil is as rotting meat before
                                the maggots of justice!
                   Earthworm Jim: Thank you for cramming that delightful image
-                                 into my brain, Peter."""
-                  #(C) Universal Cartoon Studios - Earth Worm Jim
+                                 into my brain, Peter.
+                """  # (C) Universal Cartoon Studios - Earth Worm Jim
 
         fd, path = mkstemp()
         try:
@@ -431,8 +426,8 @@ class IOProcessTests(TestCase):
                   they arrive on the planet, blinking, step into the sun,
                   there is more to see than can ever be seen, more to do
                   than-no, hold on. Sorry, that's The Lion King.
-                  But the point still stands: leave them alone!"""
-                  #(C) BBC - Doctor Who
+                  But the point still stands: leave them alone!
+                  """  # (C) BBC - Doctor Who
 
         fd, path = mkstemp(dir="/var/tmp")
         try:
@@ -452,8 +447,7 @@ class IOProcessTests(TestCase):
                   Jackie: There's a strange man in my bedroom.
                   The Doctor: Yes, there is.
                   Jackie: Anything could happen.
-                  The Doctor: No. [walks away]"""
-                  #(C) BBC - Doctor Who
+                  The Doctor: No. [walks away]"""  # (C) BBC - Doctor Who
 
         fd, path = mkstemp(dir="/var/tmp")
         try:
