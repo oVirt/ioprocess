@@ -12,11 +12,12 @@ import errno
 from collections import namedtuple
 from base64 import b64decode, b64encode
 import stat
-import time
 import signal
 from weakref import ref
 
 from cpopen import CPopen
+
+elapsed_time = lambda: os.times()[4]  # The system's monotonic timer
 
 try:
     import vdsm.infra.zombiereaper as zombiereaper
@@ -192,17 +193,20 @@ def NoIntrPoll(pollfun, timeout=-1):
     """
     # When the timeout < 0 we shouldn't compute a new timeout after an
     # interruption.
-    endtime = None if timeout < 0 else time.time() + timeout
+    if timeout < 0:
+        endtime = None
+    else:
+        endtime = elapsed_time() + timeout
 
     while True:
         try:
-            return pollfun(timeout)
+            return pollfun(timeout * 1000)  # timeout for poll is in ms
         except (IOError, error) as e:
             if e.args[0] != errno.EINTR:
                 raise
 
-        if endtime is not None:
-            timeout = max(0, endtime - time.time())
+        if endtime is not None and elapsed_time() > endtime:
+            timeout = max(0, endtime - elapsed_time())
 
 
 class Timeout(RuntimeError):
