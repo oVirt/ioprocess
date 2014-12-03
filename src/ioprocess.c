@@ -425,7 +425,7 @@ static void servRequest(void *data, void *queueSlotsLeft) {
     JsonNode *response;
     JsonNode *result = NULL;
 
-    g_debug("Extracting request information...");
+    g_trace("Extracting request information...");
     extractRequestInfo(reqInfo, &methodName, &reqId, &args, &err);
     if (err) {
         g_warning("Could not extract params: %s", err->message);
@@ -441,7 +441,7 @@ static void servRequest(void *data, void *queueSlotsLeft) {
         goto respond;
     }
 
-    g_debug("(%li) Got request for method '%s'", reqId, methodName);
+    g_trace("(%li) Got request for method '%s'", reqId, methodName);
     result = callback(args, &err);
 respond:
     g_trace("(%li) Building response", reqId);
@@ -456,7 +456,7 @@ respond:
         goto clean;
     }
 
-    g_debug("(%li) Queuing response", reqId);
+    g_trace("(%li) Queuing response", reqId);
     g_async_queue_push(responseQueue, response);
 
 clean:
@@ -522,7 +522,7 @@ static void *requestHandler(void *data) {
         reqParams->reqObj = reqObj;
         reqParams->responseQueue = responseQueue;
 
-        g_debug("Queuing request in the thread pool...");
+        g_trace("Queuing request in the thread pool...");
 
         if (MAX_QUEUED_REQUESTS >= 0 &&
             g_atomic_int_dec_and_test(&queueSlotsLeft)) {
@@ -633,7 +633,7 @@ static void *requestReader(void *data) {
         if (bytesPending == 0) {
             g_trace("Waiting for next request...");
             rv = read(readPipe, &reqSize, sizeof(reqSize));
-            g_debug("Receiving request...");
+            g_trace("Receiving request...");
             if (rv < 0) {
                 g_warning("Could not read request size: %s", iop_strerror(errno));
                 rv = errno;
