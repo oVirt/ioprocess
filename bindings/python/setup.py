@@ -1,7 +1,10 @@
 from distutils.core import setup
+import os
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 setup(name='ioprocess',
-      version=open('VERSION').read().strip(),
+      version=os.getenv('VERSION').strip(),
       description='Creates a subprocess in simpler safer manner',
       license="GNU GPLv2+",
       author='Saggi Mizrahi',

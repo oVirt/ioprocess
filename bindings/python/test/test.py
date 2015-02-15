@@ -40,8 +40,8 @@ import pprint
 
 elapsed_time = lambda: os.times()[4]
 
-IOProcess.IOPROCESS_EXE = os.path.join(os.path.dirname(__file__),
-                                       "../../../src/ioprocess")
+IOProcess.IOPROCESS_EXE = os.path.join(os.getcwd(),
+                                       "../../src/ioprocess")
 IOProcess._DEBUG_VALGRIND = os.environ.get("ENABLE_VALGRIND", False)
 
 _VALGRIND_RUNNING = IOProcess._DEBUG_VALGRIND

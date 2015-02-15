@@ -58,5 +58,4 @@ AC_OUTPUT([Makefile
            .ycm_extra_conf.py
            bindings/Makefile
            bindings/python/Makefile
-           bindings/python/VERSION
            src/Makefile])
