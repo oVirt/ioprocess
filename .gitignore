@@ -10,6 +10,7 @@ Makefile.in
 /build-aux/depcomp
 /build-aux/install-sh
 /build-aux/missing
+/build-aux/compile
 
 /autom4te.cache/
 
