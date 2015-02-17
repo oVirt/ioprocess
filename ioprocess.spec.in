@@ -20,7 +20,10 @@ BuildRequires:	python2-devel
 BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
 Requires:	yajl
+#EL7 is able to autodetect library dependencies
+%if 0%{?rhel} && 0%{?rhel} <= 6
 Requires:	glib2
+%endif
 
 %description
 Slave process to perform risky IO.
@@ -56,9 +59,13 @@ Python bindings for ioprocess
 %files -n python-ioprocess
 %{python2_sitelib}/ioprocess-*.egg-info
 %{python2_sitelib}/ioprocess/
+%doc README.md COPYING AUTHORS
 
 %changelog
-* Mon Oct 20 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.14.0-2
+* Tue Feb 17 2015 Sandro Bonazzola <sbonazzo@redhat.com> - 0.15.0-1
+- Fix rpmlint E: explicit-lib-dependency
+- Fix rpmlint W: no-documentation
+* Mon Oct 20 2014 Saggi Mizrahi <smizrahi@redhat.com> 0.14.0-1
 - Fix poll timeout
 - Add support for zombiereaper where available
 - Fix IOProcesses being referenced by commincation thread
