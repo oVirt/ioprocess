@@ -27,7 +27,7 @@ except ImportError:
     except ImportError:
         zombiereaper = None
 
-EXT_IOPROCESS = "/usr/libexec/ioprocess"
+EXT_IOPROCESS = "@LIBEXECDIR@/ioprocess"
 
 Size = Struct("@Q")
 
