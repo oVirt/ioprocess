@@ -62,6 +62,8 @@ Python bindings for ioprocess
 %doc README.md COPYING AUTHORS
 
 %changelog
+* Sun Apr 5 2015 Yaniv Bronhaim <ybronhei@redhat.com> - 0.15.0-2
+- Rebuild for ppc64le arch
 * Tue Feb 17 2015 Sandro Bonazzola <sbonazzo@redhat.com> - 0.15.0-1
 - Fix rpmlint E: explicit-lib-dependency
 - Fix rpmlint W: no-documentation
