@@ -1,5 +1,3 @@
-%global owner smizrahi
-
 #python2_sitelib is declared as python_sitelib in EL6
 %if 0%{?rhel} && 0%{?rhel} <= 6
 %global python2_sitelib %{python_sitelib}
@@ -13,7 +11,7 @@ Summary:	Slave process to perform risky IO
 Group:		System Environment/Base
 License:	GPLv2+
 URL:		https://github.com/ficoos/ioprocess
-Source0:	https://%{owner}.fedorapeople.org/%{name}/%{name}-%{version}.tar.gz
+Source0:	https://bronhaim.fedorapeople.org/%{name}-%{version}.tar.gz
 
 
 BuildRequires:	python2-devel
