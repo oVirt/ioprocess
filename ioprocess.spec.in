@@ -49,6 +49,7 @@ Summary:	Python bindings for ioprocess
 BuildArch:	noarch
 Requires:	python
 Requires:	python-cpopen
+Requires:	python-six
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python-ioprocess

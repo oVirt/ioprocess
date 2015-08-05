@@ -3,7 +3,6 @@ from select import poll, \
     POLLERR, POLLHUP, POLLPRI, POLLOUT, POLLIN, POLLWRBAND, \
     error
 from threading import Thread, Event
-from Queue import Queue, Empty
 import fcntl
 import json
 from struct import Struct
@@ -20,6 +19,10 @@ try:
 except ImportError:
     cpopen = None
     import subprocess
+
+import six
+Queue = six.moves.queue.Queue
+Empty = six.moves.queue.Empty
 
 elapsed_time = lambda: os.times()[4]  # The system's monotonic timer
 
