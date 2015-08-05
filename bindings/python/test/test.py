@@ -228,13 +228,13 @@ class IOProcessTests(TestCase):
                         "Detected a leak sized %d KB" % RSSDiff)
 
     def testStat(self):
-        data = """The Doctor: [to Craig's baby] No! He's your dad! You can't
-                              just call him "Not Mum".
-                  Craig: "Not Mum"?
-                  The Doctor: That's you! "Also Not Mum", that's me! And every
-                              body else is [gets near to hear baby]
-                              "Peasants"! That's a bit unfortunate...
-                """  # (C) BBC - Doctor Who
+        data = b'''The Doctor: [to Craig's baby] No! He's your dad! You can't
+                               just call him "Not Mum".
+                   Craig: "Not Mum"?
+                   The Doctor: That's you! "Also Not Mum", that's me! And every
+                               body else is [gets near to hear baby]
+                               "Peasants"! That's a bit unfortunate...
+                 '''  # (C) BBC - Doctor Who
 
         fd, path = mkstemp()
         try:
@@ -256,11 +256,11 @@ class IOProcessTests(TestCase):
             os.unlink(path)
 
     def testStatvfs(self):
-        data = """Peter Puppy: Once again, evil is as rotting meat before
-                               the maggots of justice!
-                  Earthworm Jim: Thank you for cramming that delightful image
-                                 into my brain, Peter.
-                """  # (C) Universal Cartoon Studios - Earth Worm Jim
+        data = b'''Peter Puppy: Once again, evil is as rotting meat before
+                                the maggots of justice!
+                   Earthworm Jim: Thank you for cramming that delightful image
+                                  into my brain, Peter.
+                '''  # (C) Universal Cartoon Studios - Earth Worm Jim
 
         fd, path = mkstemp()
         try:
@@ -429,14 +429,14 @@ class IOProcessTests(TestCase):
 
     def testReadfile(self, direct=False):
 
-        data = """The Doctor: Well... you could do that. Yeah, you could do
-                  that. Of course you could! But why? Look at these people,
-                  these human beings. Consider their potential! From the day
-                  they arrive on the planet, blinking, step into the sun,
-                  there is more to see than can ever be seen, more to do
-                  than-no, hold on. Sorry, that's The Lion King.
-                  But the point still stands: leave them alone!
-                  """  # (C) BBC - Doctor Who
+        data = b'''The Doctor: Well... you could do that. Yeah, you could do
+                   that. Of course you could! But why? Look at these people,
+                   these human beings. Consider their potential! From the day
+                   they arrive on the planet, blinking, step into the sun,
+                   there is more to see than can ever be seen, more to do
+                   than-no, hold on. Sorry, that's The Lion King.
+                   But the point still stands: leave them alone!
+                   '''  # (C) BBC - Doctor Who
 
         fd, path = mkstemp(dir="/var/tmp")
         try:
@@ -451,18 +451,18 @@ class IOProcessTests(TestCase):
         return self.testReadfile(True)
 
     def testWritefile(self, direct=False):
-        data = """Jackie: I'm in my dressing gown.
-                  The Doctor: Yes, you are.
-                  Jackie: There's a strange man in my bedroom.
-                  The Doctor: Yes, there is.
-                  Jackie: Anything could happen.
-                  The Doctor: No. [walks away]"""  # (C) BBC - Doctor Who
+        data = b'''Jackie: I'm in my dressing gown.
+                   The Doctor: Yes, you are.
+                   Jackie: There's a strange man in my bedroom.
+                   The Doctor: Yes, there is.
+                   Jackie: Anything could happen.
+                   The Doctor: No. [walks away]'''  # (C) BBC - Doctor Who
 
         fd, path = mkstemp(dir="/var/tmp")
         try:
             os.close(fd)
             self.proc.writefile(path, data, direct)
-            with open(path, "r") as f:
+            with open(path, 'rb') as f:
                 diskData = f.read()
 
             self.assertEquals(diskData[:len(data)], data)

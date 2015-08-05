@@ -157,7 +157,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
 
                     reqId = real_ioproc._getRequestId()
                     pendingRequests[reqId] = resObj
-                    reqString = real_ioproc._requestToString(cmd, reqId)
+                    reqString = real_ioproc._requestToBytes(cmd, reqId)
                     dataSender = DataSender(writePipe, reqString)
                     poller.modify(writePipe, OUTPUT_READY_FLAGS)
                     continue
@@ -262,7 +262,7 @@ class ResponseReader(object):
         self._fd = fd
         self._responses = []
         self._dataRemaining = 0
-        self._dataBuffer = ""
+        self._dataBuffer = b''
         self.timeout = 10
 
     def process(self):
@@ -282,9 +282,9 @@ class ResponseReader(object):
         self._dataRemaining -= len(buff)
         self._dataBuffer += buff
         if self._dataRemaining == 0:
-            resObj = json.loads(self._dataBuffer)
+            resObj = json.loads(self._dataBuffer.decode('utf8'))
             self._responses.append(resObj)
-            self._dataBuffer = ""
+            self._dataBuffer = b''
             return True
 
         return False
@@ -352,7 +352,7 @@ class IOProcess(object):
         self._startCommunication(p, myRead, myWrite)
 
     def _pingPoller(self):
-        os.write(self._eventFdSender, "0")
+        os.write(self._eventFdSender, b'0')
 
     def _startCommunication(self, proc, readPipe, writePipe):
         args = (ref(self), proc, readPipe, writePipe)
@@ -368,7 +368,7 @@ class IOProcess(object):
         self._reqId += 1
         return self._reqId
 
-    def _requestToString(self, cmd, reqId):
+    def _requestToBytes(self, cmd, reqId):
         methodName, args = cmd
         reqDict = {'id': reqId,
                    'methodName': methodName,
@@ -377,12 +377,12 @@ class IOProcess(object):
         reqStr = json.dumps(reqDict)
 
         res = Size.pack(len(reqStr))
-        res += reqStr
+        res += reqStr.encode('utf8')
 
         return res
 
     def _processLogs(self, data):
-        lines = (self._partialLogs + data).splitlines(True)
+        lines = (self._partialLogs + data.decode('utf8')).splitlines(True)
         for line in lines:
             if not line.endswith("\n"):
                 self._partialLogs = line
@@ -512,7 +512,7 @@ class IOProcess(object):
     def writefile(self, path, data, direct=False):
         self._sendCommand("writefile",
                           {"path": path,
-                           "data": b64encode(data),
+                           "data": b64encode(data).decode('utf8'),
                            "direct": direct},
                           self.timeout)
 
