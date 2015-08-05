@@ -150,7 +150,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         real_ioproc._pingPoller()
     except:
         real_ioproc._log.error("IOProcess failure", exc_info=True)
-        for request in pendingRequests.itervalues():
+        for request in pendingRequests.values():
             request.result = {"errcode": ERR_IOPROCESS_CRASH,
                               "errstr": "ioprocess crashed unexpectedly"}
             request.event.set()
