@@ -217,7 +217,7 @@ class IOProcessTests(TestCase):
         startRSS = self.proc.memstat()['rss']
         # This way we catch evey leak that is more then one 0.1KB per call
         many = 300
-        for i in xrange(many):
+        for i in range(many):
             self.assertEquals(self.proc.echo(data), data)
         endRSS = self.proc.memstat()['rss']
         RSSDiff = endRSS - startRSS
