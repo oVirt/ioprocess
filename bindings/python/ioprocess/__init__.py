@@ -15,7 +15,11 @@ import stat
 import signal
 from weakref import ref
 
-from cpopen import CPopen
+try:
+    import cpopen
+except ImportError:
+    cpopen = None
+    import subprocess
 
 elapsed_time = lambda: os.times()[4]  # The system's monotonic timer
 
@@ -54,6 +58,18 @@ DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
                       stat.S_IROTH | stat.S_IXOTH)
 
 USE_ZOMBIE_REAPER = False
+
+
+def _spawnProc(cmd):
+    if cpopen:
+        return cpopen.CPopen(cmd)
+    else:
+        return subprocess.Popen(
+            cmd,
+            close_fds=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
 
 
 # Communicate is a function to prevent the bound method from strong referencing
@@ -315,7 +331,7 @@ class IOProcess(object):
                    "--leak-check=full", "--tool=memcheck"] + cmd + \
                   ["--keep-fds"]
 
-        p = CPopen(cmd)
+        p = _spawnProc(cmd)
 
         os.close(hisRead)
         os.close(hisWrite)
