@@ -315,6 +315,13 @@ class IOProcess(object):
         myRead, hisWrite = os.pipe()
         hisRead, myWrite = os.pipe()
 
+        for fd in (hisRead, hisWrite):
+            fcntl.fcntl(
+                fd,
+                fcntl.F_SETFD,
+                fcntl.fcntl(fd, fcntl.F_GETFD) & ~(fcntl.FD_CLOEXEC)
+            )
+
         self._partialLogs = ""
         cmd = [self.IOPROCESS_EXE,
                "--read-pipe-fd", str(hisRead),
