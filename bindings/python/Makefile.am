@@ -2,7 +2,7 @@ EXTRA_DIST = \
     $(NULL)
 
 check-local:
-	nosetests $(srcdir)/test/test.py
+	$(PYTHON) $(srcdir)/test/runner.py $(srcdir)/test/test.py
 
 dist-hook:
 	mkdir -p $(distdir)/tmp
