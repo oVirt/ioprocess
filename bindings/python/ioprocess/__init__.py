@@ -35,6 +35,7 @@ except ImportError:
         zombiereaper = None
 
 EXT_IOPROCESS = "@LIBEXECDIR@/ioprocess"
+EXT_TASKSET = "@BINDIR@/taskset"
 
 Size = Struct("@Q")
 
@@ -61,6 +62,8 @@ DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
                       stat.S_IROTH | stat.S_IXOTH)
 
 USE_ZOMBIE_REAPER = False
+
+_ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
 
 def _spawnProc(cmd):
@@ -326,7 +329,10 @@ class IOProcess(object):
             )
 
         self._partialLogs = ""
-        cmd = [self.IOPROCESS_EXE,
+
+        cmd = [EXT_TASKSET,
+               '--cpu-list', _ANY_CPU,
+               self.IOPROCESS_EXE,
                "--read-pipe-fd", str(hisRead),
                "--write-pipe-fd", str(hisWrite),
                "--max-threads", str(self._max_threads),

@@ -20,6 +20,7 @@ def copy_file(
     dry_run=0,
 ):
     libexecdir = os.environ['LIBEXECDIR']
+    bindir = os.environ['BINDIR']
     orig_copy_file(
         src,
         dst,
@@ -35,6 +36,7 @@ def copy_file(
         data = target.read()
 
     data = data.replace("@LIBEXECDIR@", libexecdir)
+    data = data.replace("@BINDIR@", bindir)
 
     with open(dst, "wb") as target:
         target.write(data)
