@@ -381,6 +381,7 @@ struct IOProcessCtx_t {
 typedef struct IOProcessCtx_t IOProcessCtx;
 
 struct RequestParams {
+    gint64 reqTime;
     JsonNode *reqObj;
     GAsyncQueue *responseQueue;
 };
@@ -424,6 +425,7 @@ static void servRequest(void *data, void *queueSlotsLeft) {
     JsonNode *args = NULL;
     JsonNode *response;
     JsonNode *result = NULL;
+    gint64 startTime;
 
     g_trace("Extracting request information...");
     extractRequestInfo(reqInfo, &methodName, &reqId, &args, &err);
@@ -441,8 +443,16 @@ static void servRequest(void *data, void *queueSlotsLeft) {
         goto respond;
     }
 
-    g_trace("(%li) Got request for method '%s'", reqId, methodName);
+    startTime = g_get_monotonic_time();
+
+    g_debug("(%li) Start request for method '%s' (waitTime=%li)", reqId,
+            methodName, startTime - params->reqTime);
+
     result = callback(args, &err);
+
+    g_debug("(%li) Finished request for method '%s' (runTime=%li)", reqId,
+            methodName, g_get_monotonic_time() - startTime);
+
 respond:
     g_trace("(%li) Building response", reqId);
 
@@ -473,6 +483,8 @@ clean:
     JsonNode_free(reqInfo);
     if (MAX_QUEUED_REQUESTS >= 0) {
         g_atomic_int_inc((gint*) queueSlotsLeft);
+        g_debug("(%li) Dequeuing request (slotsLeft=%i)", reqId,
+                *(gint*)queueSlotsLeft);
     }
 }
 
@@ -519,16 +531,18 @@ static void *requestHandler(void *data) {
             err = ENOMEM;
             break;
         }
+        reqParams->reqTime = g_get_monotonic_time();
         reqParams->reqObj = reqObj;
         reqParams->responseQueue = responseQueue;
-
-        g_trace("Queuing request in the thread pool...");
 
         if (MAX_QUEUED_REQUESTS >= 0 &&
             g_atomic_int_dec_and_test(&queueSlotsLeft)) {
             servQueueFull(reqParams);
             g_atomic_int_inc(&queueSlotsLeft);
         } else {
+            /* TODO: log request id */
+            g_debug("Queuing request (slotsLeft=%i)", queueSlotsLeft);
+
             g_thread_pool_push(threadPool, reqParams, &gerr);
             if (gerr) {
                     g_warning("%s", gerr->message);
