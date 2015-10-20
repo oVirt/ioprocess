@@ -560,7 +560,7 @@ class IOProcessTests(TestCase):
         proc = IOProcess(timeout=1, max_threads=5)
         proc = ref(proc)
 
-        max_wait = 10
+        max_wait = 30
         end = elapsed_time() + max_wait
 
         while True:
