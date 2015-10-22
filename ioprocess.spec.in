@@ -20,7 +20,7 @@ BuildRequires:	yajl-devel
 Requires:	yajl
 #EL7 is able to autodetect library dependencies
 %if 0%{?rhel} && 0%{?rhel} <= 6
-Requires:	glib2
+Requires:	glib2 >= 2.28
 %endif
 
 %description
