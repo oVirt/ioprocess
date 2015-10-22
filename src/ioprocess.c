@@ -670,13 +670,13 @@ static void *requestReader(void *data) {
 
         rv = read(readPipe, buffer + (reqSize - bytesPending),
                   bytesPending);
-        if (rv <= 0) {
-            if (errno == EAGAIN) {
-                continue;
-            }
-
+        if (rv < 0) {
             g_warning("Could not read from pipe: %s", iop_strerror(errno));
             rv = errno;
+            goto done;
+        } else if (rv == 0) {
+            g_warning("Pipe closed");
+            rv = EPIPE;
             goto done;
         }
 
