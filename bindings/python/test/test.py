@@ -583,3 +583,43 @@ class IOProcessTests(TestCase):
 
     def tearDown(self):
         self.proc.close()
+
+
+class FakeLogger(object):
+
+    def __init__(self):
+        self.messages = []
+
+    def debug(self, msg):
+        self.messages.append(msg)
+
+    info = debug
+    warning = debug
+    error = debug
+
+
+class LoggingTests(TestCase):
+
+    def test_partial_logs(self):
+        threads = []
+        proc = IOProcess(timeout=1, max_threads=10)
+        proc._sublog = FakeLogger()
+
+        def worker():
+            for i in range(100):
+                proc.stat(__file__)
+
+        try:
+            for i in range(4):
+                t = Thread(target=worker)
+                t.deamon = True
+                t.start()
+                threads.append(t)
+        finally:
+            for t in threads:
+                t.join()
+            proc.close()
+
+        for msg in proc._sublog.messages:
+            self.assertFalse('DEBUG|' in msg,
+                             "Raw log data in log message: %r" % msg)

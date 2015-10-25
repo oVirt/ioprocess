@@ -388,7 +388,11 @@ class IOProcess(object):
         return res
 
     def _processLogs(self, data):
-        lines = (self._partialLogs + data.decode('utf8')).splitlines(True)
+        data = data.decode('utf8')
+        if self._partialLogs:
+            data = self._partialLogs + data
+            self._partialLogs = ''
+        lines = data.splitlines(True)
         for line in lines:
             if not line.endswith("\n"):
                 self._partialLogs = line
