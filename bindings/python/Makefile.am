@@ -1,5 +1,5 @@
-EXTRA_DIST = \
-    $(NULL)
+EXTRA_DIST = $(srcdir)/test/runner.py \
+             $(NULL)
 
 check-local:
 	$(PYTHON) $(srcdir)/test/runner.py $(srcdir)/test/test.py
