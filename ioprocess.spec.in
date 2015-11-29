@@ -61,7 +61,7 @@ Python bindings for ioprocess
 %doc README.md COPYING AUTHORS
 
 %changelog
-* Thu Nov 29 2015 Yeela Kaplan <ykaplan@redhat.com> - 0.15.0-4
+* Sun Nov 29 2015 Yeela Kaplan <ykaplan@redhat.com> - 0.15.0-4
 - Fix string formatting for 32bit architecture
 * Thu Nov 26 2015 Yaniv Bronhaim <ybronhei@redhat.com> - 0.15.0-3
 - Rebuild for ovirt 3.6.1
