@@ -445,13 +445,13 @@ static void servRequest(void *data, void *queueSlotsLeft) {
 
     startTime = g_get_monotonic_time();
 
-    g_debug("(%li) Start request for method '%s' (waitTime=%li)", reqId,
-            methodName, startTime - params->reqTime);
+    g_debug("(%li) Start request for method '%s' (waitTime=%" PRId64 ")",
+            reqId, methodName, startTime - params->reqTime);
 
     result = callback(args, &err);
 
-    g_debug("(%li) Finished request for method '%s' (runTime=%li)", reqId,
-            methodName, g_get_monotonic_time() - startTime);
+    g_debug("(%li) Finished request for method '%s' (runTime=%" PRId64 ")",
+            reqId, methodName, g_get_monotonic_time() - startTime);
 
 respond:
     g_trace("(%li) Building response", reqId);
