@@ -9,7 +9,7 @@ AC_CONFIG_HEADERS([config.h])
 
 COMMIT=`git log -n 1 --format=%H 2> /dev/null`
 AC_SUBST(COMMIT)
-AC_SUBST(RELEASE, 3)
+AC_SUBST(RELEASE, 4)
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
