@@ -63,6 +63,9 @@ Python bindings for ioprocess
 %changelog
 * Thu Nov 26 2015 Yaniv Bronhaim <ybronhei@redhat.com> - 0.15.0-3
 - Rebuild for ovirt 3.6.1
+- Add debug logging
+- Fix memory and cpu leak
+- Set cpu affinity to run ioprocess on any cpu
 * Sun Apr 5 2015 Yaniv Bronhaim <ybronhei@redhat.com> - 0.15.0-2
 - Rebuild for ppc64le arch
 * Tue Feb 17 2015 Sandro Bonazzola <sbonazzo@redhat.com> - 0.15.0-1
