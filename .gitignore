@@ -21,6 +21,7 @@ Makefile.in
 /aclocal.m4
 /stamp-h1
 /autoscan.log
+/INSTALL
 
 /src/.deps/
 /src/ioprocess
