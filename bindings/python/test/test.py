@@ -309,12 +309,8 @@ class IOProcessTests(TestCase):
         finally:
             os.unlink(path)
 
-    def testPathExistsFail(self):
-        try:
-            self.proc.pathExists("/I do not exist")
-        except OSError as e:
-            if e.errno != errno.ENOENT:
-                raise
+    def testPathDoesNotExist(self):
+        self.assertFalse(self.proc.pathExists("/I do not exist"))
 
     def testRename(self):
         fd, oldpath = mkstemp()
