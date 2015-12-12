@@ -34,8 +34,7 @@ except ImportError:
     except ImportError:
         zombiereaper = None
 
-EXT_IOPROCESS = "@LIBEXECDIR@/ioprocess"
-EXT_TASKSET = "@BINDIR@/taskset"
+from . import config
 
 Size = Struct("@Q")
 
@@ -297,7 +296,6 @@ class ResponseReader(object):
 
 
 class IOProcess(object):
-    IOPROCESS_EXE = EXT_IOPROCESS
     _DEBUG_VALGRIND = False
     _TRACE_DEBUGGING = False
 
@@ -330,9 +328,9 @@ class IOProcess(object):
 
         self._partialLogs = ""
 
-        cmd = [EXT_TASKSET,
+        cmd = [config.TASKSET_PATH,
                '--cpu-list', _ANY_CPU,
-               self.IOPROCESS_EXE,
+               config.IOPROCESS_PATH,
                "--read-pipe-fd", str(hisRead),
                "--write-pipe-fd", str(hisWrite),
                "--max-threads", str(self._max_threads),

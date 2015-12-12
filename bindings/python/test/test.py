@@ -22,7 +22,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout
+from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout, config
 from threading import Thread
 import time
 import errno
@@ -37,11 +37,10 @@ from weakref import ref
 import gc
 import pprint
 
-
 elapsed_time = lambda: os.times()[4]
 
-IOProcess.IOPROCESS_EXE = os.path.join(os.getcwd(),
-                                       "../../src/ioprocess")
+config.IOPROCESS_PATH = os.path.join(os.getcwd(),
+                                     "../../src/ioprocess")
 IOProcess._DEBUG_VALGRIND = os.environ.get("ENABLE_VALGRIND", False)
 
 _VALGRIND_RUNNING = IOProcess._DEBUG_VALGRIND

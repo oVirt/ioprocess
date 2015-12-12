@@ -53,6 +53,9 @@ AC_CHECK_LIB([yajl], [yajl_config], [AC_SUBST(YAJL_CFLAGS, "-DYAJL_VERSION=2")],
 AC_CHECK_HEADERS([yajl/yajl_parse.h], [], [AC_MSG_ERROR([yajl headers missing])])
 AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 
+AC_SUBST([IOPROCESS_DIR], ['${libexecdir}'])
+AC_PATH_PROG([TASKSET_PATH], [taskset], [/usr/bin/taskset])
+
 AC_OUTPUT([Makefile
            ioprocess.spec
            .ycm_extra_conf.py
