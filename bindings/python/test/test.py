@@ -288,6 +288,8 @@ class IOProcessTests(TestCase):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testMissingArguemt(self):
         try:
@@ -334,6 +336,8 @@ class IOProcessTests(TestCase):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testUnlink(self):
         fd, path = mkstemp()
@@ -352,6 +356,8 @@ class IOProcessTests(TestCase):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testLink(self):
         fd, oldpath = mkstemp()
@@ -372,6 +378,8 @@ class IOProcessTests(TestCase):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testSymlink(self):
         fd, oldpath = mkstemp()
@@ -423,6 +431,8 @@ class IOProcessTests(TestCase):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testReadfile(self, direct=False):
 
