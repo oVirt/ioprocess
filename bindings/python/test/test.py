@@ -394,10 +394,12 @@ class IOProcessTests(TestCase):
 
     def testSymlinkFail(self):
         try:
-            self.proc.symlink("/I/do/not/exist", "/Dsadsad")
+            self.proc.symlink("/Dsadsad", "/I/do/not/exist")
         except OSError as e:
-            if e.errno != errno.EACCES:
+            if e.errno != errno.ENOENT:
                 raise
+        else:
+            raise AssertionError("OSError was not raised")
 
     def testChmod(self):
         fd, path = mkstemp()
