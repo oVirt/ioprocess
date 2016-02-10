@@ -14,11 +14,10 @@ ioprocess_CFLAGS = $(GLIB2_CFLAGS) \
 		   $(IOPROCESS_CFLAGS) \
 		   $(AM_CFLAGS) \
 		   $(NULL)
-ioprocess_LDFLAGS = $(GLIB2_LIBS) \
-		    $(GTHREAD2_LIBS) \
-		    $(YAJL_LIBS) \
-		    $(AM_LDFLAGS) \
-		    $(NULL)
+ioprocess_LDADD = $(GLIB2_LIBS) \
+		  $(GTHREAD2_LIBS) \
+		  $(YAJL_LIBS) \
+		  $(NULL)
 
 ioprocess_SOURCES = \
 	json-dom.c \
