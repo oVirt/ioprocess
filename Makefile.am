@@ -31,6 +31,7 @@ rpm: dist
 EXTRA_DIST = ioprocess.spec.in \
 	     ioprocess.spec \
 	     README.md \
+	     BUILD.md \
 	     $(NULL)
 
 CLEANFILES = ioprocess.spec \
