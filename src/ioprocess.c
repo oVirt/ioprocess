@@ -203,6 +203,7 @@ static int closeUnrelatedFDs(int whitelist[]) {
 
     char fullPath[PATH_MAX];
     char filePath[PATH_MAX];
+    ssize_t len;
 
     /* I use fdopendir so I know what the fd number is so I don't close it mid
      * operation */
@@ -257,9 +258,13 @@ static int closeUnrelatedFDs(int whitelist[]) {
         }
 
         sprintf(fullPath, "/proc/self/fd/%s", fname);
-        if (readlink(fullPath, filePath, PATH_MAX) < 0) {
-            strcpy(fullPath, "(error)");
-        }
+
+        len = readlink(fullPath, filePath, PATH_MAX - 1);
+        if (len < 0)
+            strcpy(filePath, "(error)");
+        else
+            filePath[len] = '\0';
+
         g_trace("Closing unrelated fd no: %s (%s)", fname, filePath);
         if (close(fdNum) < 0) {
             switch (errno) {
