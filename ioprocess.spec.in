@@ -18,6 +18,8 @@ URL:		https://github.com/oVirt/ioprocess
 Source:		https://github.com/oVirt/ioprocess/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 
+BuildRequires:	autoconf
+BuildRequires:	automake
 BuildRequires:	python2-devel
 BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
@@ -53,6 +55,11 @@ make install DESTDIR=%{buildroot}
 %package -n python-ioprocess
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
+BuildRequires:	python
+BuildRequires:	python-cpopen
+BuildRequires:	python-nose
+BuildRequires:	python-six
+BuildRequires:	util-linux
 Requires:	python
 Requires:	python-cpopen
 Requires:	python-six
