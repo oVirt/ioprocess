@@ -381,16 +381,18 @@ class IOProcess(object):
         return res
 
     def _processLogs(self, data):
-        data = data.decode('utf8')
         if self._partialLogs:
             data = self._partialLogs + data
-            self._partialLogs = ''
+            self._partialLogs = b''
         lines = data.splitlines(True)
         for line in lines:
-            if not line.endswith("\n"):
+            if not line.endswith(b"\n"):
                 self._partialLogs = line
                 return
 
+            # We must decode the line becuase python3 does not log bytes
+            # properly (e.g. you get "b'text'" intead of "text").
+            line = line.decode('utf8', 'replace')
             try:
                 level, logDomain, message = line.strip().split("|", 2)
             except:
