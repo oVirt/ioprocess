@@ -1,11 +1,11 @@
-EXTRA_DIST = $(srcdir)/test/runner.py \
-             $(srcdir)/ioprocess/config.py.in \
-             $(NULL)
+EXTRA_DIST = $(srcdir)/ioprocess/config.py.in \
+			 $(srcdir)/test/*.py \
+			 $(NULL)
 
 all-local: $(srcdir)/ioprocess/config.py
 
 check-local:
-	$(PYTHON) $(srcdir)/test/runner.py $(srcdir)/test/test.py
+	nosetests -v
 
 dist-hook:
 	mkdir -p $(distdir)/tmp
