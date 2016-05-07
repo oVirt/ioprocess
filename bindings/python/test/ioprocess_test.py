@@ -664,7 +664,8 @@ class FakeLogger(object):
     def __init__(self):
         self.messages = []
 
-    def debug(self, msg):
+    def debug(self, fmt, *args):
+        msg = fmt % args
         self.messages.append(msg)
 
     info = debug
