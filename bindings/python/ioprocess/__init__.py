@@ -312,7 +312,7 @@ class IOProcess(object):
         self._reqId = 0
         self._isRunning = True
 
-        self._log.debug("Starting client %s", self.name)
+        self._log.info("Starting client %s", self.name)
         self._run()
         self._partialLogs = ""
 
@@ -560,11 +560,13 @@ class IOProcess(object):
 
         self._isRunning = False
 
-        self._log.debug("Closing client %s", self.name)
+        self._log.info("Closing client %s", self.name)
         self._pingPoller()
         os.close(self._eventFdReciever)
         os.close(self._eventFdSender)
         if sync:
+            self._log.debug("Waiting for communication thread for %s",
+                            self.name)
             self._commthread.join()
 
     def __del__(self):
