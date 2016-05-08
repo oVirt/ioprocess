@@ -35,6 +35,8 @@ gboolean TRACE_ENABLED = FALSE;
 static int stop_value;
 #define STOP_PTR ((gpointer) &stop_value)
 
+static GAsyncQueue *logger_queue;
+
 static inline void stop_request_reader(void) {
     if (READ_PIPE_FD != -1) {
         close(READ_PIPE_FD);
@@ -127,13 +129,10 @@ static void logfunc(const gchar *log_domain, GLogLevelFlags log_level,
 }
 
 static void *logWriter(void *data) {
-    GAsyncQueue *queue = g_async_queue_new();
     FILE *stream = (FILE *) data;
     size_t nchars = -1;
     size_t n_written = -1;
     char *text = NULL;
-
-    g_log_set_handler(NULL, G_LOG_LEVEL_MASK, logfunc, queue);
 
     while (!feof(stream) && !ferror(stream)) {
         if (n_written == nchars) {
@@ -141,7 +140,7 @@ static void *logWriter(void *data) {
                 free(text);
                 text = NULL;
             }
-            text = (char*) g_async_queue_pop(queue);
+            text = (char*) g_async_queue_pop(logger_queue);
             n_written = 0;
             nchars = strlen(text);
         } else {
@@ -767,6 +766,10 @@ clean:
 GThread *log_writer = NULL;
 
 static int setup_logging() {
+    logger_queue = g_async_queue_new();
+
+    g_log_set_handler(NULL, G_LOG_LEVEL_MASK, logfunc, logger_queue);
+
     log_writer = create_thread("log writer", logWriter, stderr, TRUE);
     if (!log_writer) {
         g_print("Could not allocate request reader thread");
