@@ -85,6 +85,8 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
     if real_ioproc is None:
         return
 
+    real_ioproc._started.set()
+
     dataSender = None
     pendingRequests = {}
     responseReader = ResponseReader(readPipe)
@@ -311,6 +313,7 @@ class IOProcess(object):
         self._eventFdReciever, self._eventFdSender = os.pipe()
         self._reqId = 0
         self._isRunning = True
+        self._started = Event()
 
         self._log.info("Starting client %s", self.name)
         self._run()
@@ -365,12 +368,23 @@ class IOProcess(object):
         os.write(self._eventFdSender, b'0')
 
     def _startCommunication(self, proc, readPipe, writePipe):
+        self._log.debug("Starting communication thread for client %s",
+                        self.name)
+        self._started.clear()
+
         args = (ref(self), proc, readPipe, writePipe)
         self._commthread = start_thread(
             _communicate,
             args,
             name="ioprocess communication (%d)" % (proc.pid,),
         )
+
+        if self._started.wait(1):
+            self._log.debug("Communication thread for client %s started",
+                            self.name)
+        else:
+            self._log.warning("Timeout waiting for communication thread for "
+                              "client %s", self.name)
 
     def _getRequestId(self):
         self._reqId += 1
