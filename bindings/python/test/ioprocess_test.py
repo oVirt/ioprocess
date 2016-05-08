@@ -50,6 +50,11 @@ IOProcess._TRACE_DEBUGGING = True
 
 log = logging.getLogger("Test")
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)-7s [%(name)s] (%(threadName)s) %(message)s"
+)
+
 
 def skip_in_valgrind(f):
     @wraps(f)
