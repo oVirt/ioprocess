@@ -1,11 +1,12 @@
 EXTRA_DIST = $(srcdir)/ioprocess/config.py.in \
 			 $(srcdir)/test/*.py \
+			 $(srcdir)/tox.ini \
 			 $(NULL)
 
 all-local: $(srcdir)/ioprocess/config.py
 
 check-local:
-	nosetests -v
+	VERSION=$(VERSION) tox
 
 dist-hook:
 	mkdir -p $(distdir)/tmp

@@ -3,8 +3,8 @@ autoconf
 automake
 glib2-devel
 python-cpopen
-python-nose
 python-six
+python-tox
 python2-devel
 util-linux
 yajl-devel

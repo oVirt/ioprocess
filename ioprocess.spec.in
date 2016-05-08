@@ -57,7 +57,7 @@ Summary:	Python bindings for ioprocess
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	python-cpopen
-BuildRequires:	python-nose
+BuildRequires:	python-tox
 BuildRequires:	python-six
 BuildRequires:	util-linux
 Requires:	python
