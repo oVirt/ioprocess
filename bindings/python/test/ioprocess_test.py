@@ -519,7 +519,9 @@ class IOProcessTests(TestCase):
                    The Doctor: Yes, there is.
                    Jackie: Anything could happen.
                    The Doctor: No. [walks away]'''  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=1, max_threads=5)
+        # This test sometimes time out in the CI. On one failure, the write
+        # took 1.8 seconds inside ioprocess.
+        proc = IOProcess(timeout=5, max_threads=5)
         with closing(proc):
             fd, path = mkstemp(dir="/var/tmp")
             try:
