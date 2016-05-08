@@ -557,7 +557,15 @@ class IOProcessTests(TestCase):
         remoteMatches = self.proc.glob(os.path.join("/dsadasd", "*"))
         self.assertEquals(remoteMatches, [])
 
-    def testCircularRefs(self):
+    def tearDown(self):
+        self.proc.close()
+
+
+class TestWeakerf(TestCase):
+
+    log = logging.getLogger("TestWeakref")
+
+    def test_close_when_unrefed(self):
         """Make sure there is nothing keepin IOProcess strongly referenced.
 
         Since there is a comminucation background thread doing all the hard
@@ -567,29 +575,25 @@ class IOProcessTests(TestCase):
         proc = IOProcess(timeout=1, max_threads=5)
         proc = ref(proc)
 
-        max_wait = 30
-        end = elapsed_time() + max_wait
+        end = elapsed_time() + 5.0
 
         while True:
             gc.collect()
-            try:
-                self.assertIsNone(proc())
-            except AssertionError:
-                refs = gc.get_referrers(proc())
-                self.log.info(pprint.pformat(refs))
-                if hasattr(refs[0], "f_code"):
-                    self.log.info(pprint.pformat(refs[0].f_code))
-                del refs
-
-                if (elapsed_time() > end):
-                    raise
-            else:
+            real_proc = proc()
+            if real_proc is None:
                 break
-
-            time.sleep(1)
-
-    def tearDown(self):
-        self.proc.close()
+            refs = gc.get_referrers(real_proc)
+            self.log.info("Object referencing ioprocess instance: %s",
+                          pprint.pformat(refs))
+            if hasattr(refs[0], "f_code"):
+                self.log.info("Function referencing ioprocess instance: %s",
+                              pprint.pformat(refs[0].f_code))
+            if elapsed_time() > end:
+                raise AssertionError("These objects still reference "
+                                     "ioprocess: %s" % refs)
+            del refs
+            del real_proc
+            time.sleep(0.1)
 
 
 class FakeLogger(object):
