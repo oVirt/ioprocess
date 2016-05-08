@@ -60,9 +60,13 @@ def skip_in_valgrind(f):
 
 
 class IOProcessTests(TestCase):
+
     def setUp(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.proc = IOProcess(timeout=1, max_threads=5)
+
+    def tearDown(self):
+        self.proc.close()
 
     def testMaxRequests(self):
         self.proc = IOProcess(timeout=5, max_threads=1, max_queued_requests=1)
@@ -556,9 +560,6 @@ class IOProcessTests(TestCase):
     def testGlobNothing(self):
         remoteMatches = self.proc.glob(os.path.join("/dsadasd", "*"))
         self.assertEquals(remoteMatches, [])
-
-    def tearDown(self):
-        self.proc.close()
 
 
 class TestWeakerf(TestCase):
