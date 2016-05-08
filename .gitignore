@@ -32,6 +32,7 @@ Makefile.in
 /.lvimrc
 /bindings/python/ioprocess.valgrind.log
 /bindings/python/ioprocess/config.py
+/bindings/python/setup.py
 
 # tox and pytest tempoary directories
 bindings/python/.cache/
