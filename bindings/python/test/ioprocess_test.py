@@ -18,10 +18,8 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
-import sys
 import os
-
-sys.path.insert(0, os.path.dirname(__file__))
+import subprocess
 from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout, config
 from threading import Thread
 import time
