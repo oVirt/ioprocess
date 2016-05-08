@@ -18,24 +18,25 @@
 # Refer to the README and COPYING files for full details of the license
 #
 
-import os
-import subprocess
-from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout, config
-from threading import Thread
-import time
 import errno
-from tempfile import mkstemp, mkdtemp
-import os
-import shutil
-from unittest import TestCase
-import logging
-from unittest.case import SkipTest
-from functools import wraps
-from weakref import ref
 import gc
+import logging
+import os
+import os
 import pprint
+import shutil
+import subprocess
+import time
 
 from contextlib import closing
+from functools import wraps
+from tempfile import mkstemp, mkdtemp
+from threading import Thread
+from unittest import TestCase
+from unittest.case import SkipTest
+from weakref import ref
+
+from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout, config
 
 elapsed_time = lambda: os.times()[4]
 
