@@ -3,7 +3,7 @@ import os
 from select import poll, \
     POLLERR, POLLHUP, POLLPRI, POLLOUT, POLLIN, POLLWRBAND, \
     error
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 import fcntl
 import json
 from struct import Struct
@@ -197,8 +197,10 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
             start_thread(proc.wait, name="ioprocess wait() thread")
 
         real_ioproc = ioproc_ref()
-        if real_ioproc is not None and real_ioproc._isRunning:
-            real_ioproc._run()
+        if real_ioproc is not None:
+            with real_ioproc._lock:
+                if real_ioproc._isRunning:
+                    real_ioproc._run()
 
 
 def dict2namedtuple(d, ntType):
@@ -314,6 +316,7 @@ class IOProcess(object):
         self._reqId = 0
         self._isRunning = True
         self._started = Event()
+        self._lock = Lock()
 
         self._log.info("Starting client %s", self.name)
         self._run()
@@ -571,10 +574,10 @@ class IOProcess(object):
                                  self.timeout)
 
     def close(self, sync=True):
-        if not self._isRunning:
-            return
-
-        self._isRunning = False
+        with self._lock:
+            if not self._isRunning:
+                return
+            self._isRunning = False
 
         self._log.info("Closing client %s", self.name)
         self._pingPoller()
