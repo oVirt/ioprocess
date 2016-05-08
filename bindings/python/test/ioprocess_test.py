@@ -48,6 +48,9 @@ _VALGRIND_RUNNING = IOProcess._DEBUG_VALGRIND
 IOProcess._TRACE_DEBUGGING = True
 
 
+log = logging.getLogger("Test")
+
+
 def skip_in_valgrind(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -62,7 +65,6 @@ def skip_in_valgrind(f):
 class IOProcessTests(TestCase):
 
     def setUp(self):
-        self.log = logging.getLogger(self.__class__.__name__)
         self.proc = IOProcess(timeout=1, max_threads=5)
 
     def tearDown(self):
@@ -181,7 +183,7 @@ class IOProcessTests(TestCase):
                 if e.errno == ERR_IOPROCESS_CRASH:
                     res[0] = True
                 else:
-                    self.log.error("Got unexpected error", exc_info=True)
+                    log.error("Got unexpected error", exc_info=True)
 
         t = Thread(target=sendCmd)
         t.start()
@@ -224,8 +226,8 @@ class IOProcessTests(TestCase):
             self.assertEquals(self.proc.echo(data), data)
         endRSS = self.proc.memstat()['rss']
         RSSDiff = endRSS - startRSS
-        self.log.debug("RSS difference was %d KB, %d per request", RSSDiff,
-                       RSSDiff / many)
+        log.debug("RSS difference was %d KB, %d per request", RSSDiff,
+                  RSSDiff / many)
         # This only tests for leaks in the main request\response process.
         self.assertTrue(RSSDiff < acceptableRSSIncreasKB,
                         "Detected a leak sized %d KB" % RSSDiff)
@@ -253,7 +255,7 @@ class IOProcessTests(TestCase):
                     # enough test.
                     continue
 
-                self.log.debug("Testing field '%s'", f)
+                log.debug("Testing field '%s'", f)
                 self.assertEquals(getattr(mystat, f), getattr(pystat, f))
         finally:
             os.unlink(path)
@@ -281,7 +283,7 @@ class IOProcessTests(TestCase):
                     # implementation
                     continue
 
-                self.log.debug("Testing field '%s'", f)
+                log.debug("Testing field '%s'", f)
                 self.assertEquals(getattr(mystat, f), getattr(pystat, f))
         finally:
             os.unlink(path)
@@ -564,8 +566,6 @@ class IOProcessTests(TestCase):
 
 class TestWeakerf(TestCase):
 
-    log = logging.getLogger("TestWeakref")
-
     def test_close_when_unrefed(self):
         """Make sure there is nothing keepin IOProcess strongly referenced.
 
@@ -584,11 +584,11 @@ class TestWeakerf(TestCase):
             if real_proc is None:
                 break
             refs = gc.get_referrers(real_proc)
-            self.log.info("Object referencing ioprocess instance: %s",
-                          pprint.pformat(refs))
+            log.info("Object referencing ioprocess instance: %s",
+                     pprint.pformat(refs))
             if hasattr(refs[0], "f_code"):
-                self.log.info("Function referencing ioprocess instance: %s",
-                              pprint.pformat(refs[0].f_code))
+                log.info("Function referencing ioprocess instance: %s",
+                         pprint.pformat(refs[0].f_code))
             if elapsed_time() > end:
                 raise AssertionError("These objects still reference "
                                      "ioprocess: %s" % refs)
