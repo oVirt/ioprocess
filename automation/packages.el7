@@ -1,4 +1,4 @@
-# NOTE: this list was copied from ioprocess.spec
+# NOTE: this list was coppied from ioprocess.spec
 autoconf
 automake
 glib2-devel
@@ -6,7 +6,5 @@ python-cpopen
 python-six
 python-tox
 python2-devel
-python3-devel
-python3-six
 util-linux
 yajl-devel

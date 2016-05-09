@@ -31,6 +31,9 @@ fi
 AC_SUBST([IOPROCESS_CFLAGS])
 AM_PATH_PYTHON([2.6])
 
+# TODO: Remove when using tox > 1.7.2
+AC_CHECK_PROG([PYTHON3], [python3], [yes])
+
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/statvfs.h unistd.h])
 

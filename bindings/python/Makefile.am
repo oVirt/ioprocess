@@ -7,7 +7,12 @@ EXTRA_DIST = $(srcdir)/ioprocess/config.py.in \
 all-local: $(srcdir)/ioprocess/config.py
 
 check-local:
-	tox
+	@# TODO: Remove when using tox > 1.7.2
+	if [ -n "$(PYTHON3)" ]; then \
+		tox -e py27,py34; \
+	else \
+		tox -e py27; \
+	fi
 
 dist-hook:
 	mkdir -p $(distdir)/tmp
