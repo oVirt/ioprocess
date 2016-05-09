@@ -1,0 +1,10 @@
+# NOTE: this list was copied from ioprocess.spec
+autoconf
+automake
+glib2-devel
+python-cpopen
+python-nose
+python-six
+python2-devel
+util-linux
+yajl-devel
