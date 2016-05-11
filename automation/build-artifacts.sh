@@ -7,6 +7,6 @@ make rpm
 # environments.
 mkdir -p exported-artifacts
 
-mv rpmbuild/SRPMS/*.rpm exported-artifacts
-mv rpmbuild/RPMS/*/*.rpm exported-artifacts
-mv *.tar.gz exported-artifacts
+mv rpmbuild/SRPMS/*.rpm exported-artifacts/
+mv rpmbuild/RPMS/*/*.rpm exported-artifacts/
+mv *.tar.gz exported-artifacts/
