@@ -191,10 +191,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         if USE_ZOMBIE_REAPER and zombiereaper is not None:
             zombiereaper.autoRipPID(proc.pid)
         else:
-            Thread(
-                name="ioprocess wait() thread",
-                target=proc.wait,
-            ).start()
+            start_thread(proc.wait, name="ioprocess wait() thread")
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None and real_ioproc._isRunning:
@@ -360,13 +357,11 @@ class IOProcess(object):
 
     def _startCommunication(self, proc, readPipe, writePipe):
         args = (ref(self), proc, readPipe, writePipe)
-        self._commthread = Thread(
+        self._commthread = start_thread(
+            _communicate,
+            args,
             name="ioprocess communication (%d)" % (proc.pid,),
-            target=_communicate,
-            args=args
         )
-        self._commthread.setDaemon(True)
-        self._commthread.start()
 
     def _getRequestId(self):
         self._reqId += 1
@@ -562,3 +557,10 @@ class IOProcess(object):
 
     def __del__(self):
         self.close(False)
+
+
+def start_thread(func, args=(), name=None, daemon=True):
+    t = Thread(target=func, args=args, name=name)
+    t.daemon = daemon
+    t.start()
+    return t
