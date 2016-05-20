@@ -23,10 +23,14 @@ SUBDIRS = src bindings
 .PHONY: srpm rpm
 
 srpm: dist
-	rpmbuild -ts $(DIST_ARCHIVES)
+	rpmbuild -ts \
+		--define "release_suffix $(shell build-aux/release-suffix)" \
+		$(DIST_ARCHIVES)
 
 rpm: dist
-	rpmbuild -ta $(DIST_ARCHIVES)
+	rpmbuild -ta \
+		--define "release_suffix $(shell build-aux/release-suffix)" \
+		$(DIST_ARCHIVES)
 
 EXTRA_DIST = ioprocess.spec.in \
 	     ioprocess.spec \
