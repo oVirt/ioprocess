@@ -143,25 +143,26 @@ class IOProcessTests(TestCase):
         Makes sure that when multiple requests are sent the results come
         back with correct IDs
         """
-
         threadnum = 10
-        self.proc.timeout = threadnum + 2
+        # We want to run all requests in parallel, so have one ioprocess thread
+        # per client thread.
+        self.proc = IOProcess(timeout=2, max_threads=threadnum)
         errors = []
         threads = []
 
         def test(n):
-            if self.proc.echo(str(n), n) != str(n):
+            if self.proc.echo(str(n), 1) != str(n):
                 errors.append(n)
 
-            for i in range(threadnum):
-                t = Thread(target=test, args=(i,))
-                t.start()
-                threads.append(t)
+        for i in range(threadnum):
+            t = Thread(target=test, args=(i,))
+            t.start()
+            threads.append(t)
 
-            for thread in threads:
-                thread.join()
+        for thread in threads:
+            thread.join()
 
-            self.assertEquals(len(errors), 0)
+        self.assertEquals(len(errors), 0)
 
     def testRecoverAfterCrash(self):
         data = """Brigadier: Is there anything I can do?
