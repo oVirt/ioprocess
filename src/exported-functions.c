@@ -328,7 +328,7 @@ JsonNode* exp_touch(const JsonNode* args, GError** err){
     }
 
 clean:
-    if (fd > 0) {
+    if (fd != -1) {
         close(fd);
     }
     return stdApiWrapper(rv ,err);
@@ -377,7 +377,7 @@ JsonNode* exp_truncate(const JsonNode* args, GError** err){
     }
 
 clean:
-    if (fd > 0) {
+    if (fd != -1) {
         close(fd);
     }
     return stdApiWrapper(rv ,err);
