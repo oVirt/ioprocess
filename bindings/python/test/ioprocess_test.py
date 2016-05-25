@@ -85,8 +85,8 @@ class IOProcessTests(TestCase):
                 proc.ping()
             except OSError as e:
                 self.assertEquals(e.errno, errno.EAGAIN)
-            except:
-                self.fail("Expected OSError got %s", type(e))
+            except Exception:
+                self.fail("Expected OSError got %s", e)
             else:
                 self.fail("Expected exception")
             finally:
