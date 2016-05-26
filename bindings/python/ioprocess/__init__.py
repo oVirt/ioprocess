@@ -1,3 +1,4 @@
+import itertools
 import os
 from select import poll, \
     POLLERR, POLLHUP, POLLPRI, POLLOUT, POLLIN, POLLWRBAND, \
@@ -298,21 +299,29 @@ class IOProcess(object):
 
     _log = logging.getLogger("IOProcessClient")
     _sublog = logging.getLogger("IOProcess")
+    _counter = itertools.count()
 
-    def __init__(self, max_threads=0, timeout=60, max_queued_requests=-1):
+    def __init__(self, max_threads=0, timeout=60, max_queued_requests=-1,
+                 name=None):
         self.timeout = timeout
         self._max_threads = max_threads
         self._max_queued_requests = max_queued_requests
+        self._name = name or "ioprocess-%d" % next(self._counter)
         self._commandQueue = Queue()
         self._eventFdReciever, self._eventFdSender = os.pipe()
         self._reqId = 0
         self._isRunning = True
 
+        self._log.debug("Starting client %s", self.name)
         self._run()
         self._partialLogs = ""
 
+    @property
+    def name(self):
+        return self._name
+
     def _run(self):
-        self._log.debug("Starting IOProcess...")
+        self._log.debug("Starting ioprocess for client %s", self.name)
         myRead, hisWrite = os.pipe()
         hisRead, myWrite = os.pipe()
 
@@ -551,6 +560,7 @@ class IOProcess(object):
 
         self._isRunning = False
 
+        self._log.debug("Closing client %s", self.name)
         self._pingPoller()
         os.close(self._eventFdReciever)
         os.close(self._eventFdSender)
