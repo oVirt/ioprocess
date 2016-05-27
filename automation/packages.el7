@@ -1,6 +1,7 @@
 # NOTE: this list was coppied from ioprocess.spec
 autoconf
 automake
+git
 glib2-devel
 python-cpopen
 python-six
