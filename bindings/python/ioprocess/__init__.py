@@ -423,7 +423,7 @@ class IOProcess(object):
                 level, logDomain, message = line.strip().split("|", 2)
             except:
                 self._log.warning("Invalid log message for client %s: %r",
-                                  line, self.name)
+                                  self.name, line)
                 continue
 
             if level == "ERROR":
