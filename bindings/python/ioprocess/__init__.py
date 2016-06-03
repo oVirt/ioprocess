@@ -75,7 +75,6 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
     pendingRequests = {}
     responseReader = ResponseReader(readPipe)
 
-    out = proc.stdout.fileno()
     err = proc.stderr.fileno()
 
     poller = poll()
@@ -89,7 +88,6 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
             evtReciever = -1
             return
 
-        poller.register(out, INPUT_READY_FLAGS)
         poller.register(err, INPUT_READY_FLAGS)
         poller.register(evtReciever, INPUT_READY_FLAGS)
         poller.register(readPipe, INPUT_READY_FLAGS)
@@ -114,7 +112,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                     # This is just to trigger the error flow
                     raise Exception("FD closed")
 
-                if fd in (out, err):
+                if fd == err:
                     real_ioproc._processLogs(os.read(fd, 1024))
                     continue
 
@@ -347,7 +345,6 @@ class IOProcess(object):
         p = subprocess.Popen(
             cmd,
             pass_fds=(hisRead, hisWrite),
-            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
 
