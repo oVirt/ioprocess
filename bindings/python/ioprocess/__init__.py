@@ -232,6 +232,10 @@ def NoIntrPoll(pollfun, timeout=-1):
             timeout = max(0, endtime - elapsed_time())
 
 
+class Closed(RuntimeError):
+    """ Raised when sending command to closed client """
+
+
 class Timeout(RuntimeError):
     pass
 
@@ -368,7 +372,14 @@ class IOProcess(object):
         self._startCommunication(p, myRead, myWrite)
 
     def _pingPoller(self):
-        os.write(self._eventFdSender, b'0')
+        try:
+            os.write(self._eventFdSender, b'0')
+        except OSError as e:
+            if e.errno == errno.EAGAIN:
+                return
+            if not self._isRunning:
+                raise Closed("Client was closed")
+            raise
 
     def _startCommunication(self, proc, readPipe, writePipe):
         self._log.debug("Starting communication thread for client %s",

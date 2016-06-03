@@ -36,7 +36,7 @@ from unittest import TestCase
 from unittest.case import SkipTest
 from weakref import ref
 
-from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Timeout, config
+from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Closed, Timeout, config
 
 elapsed_time = lambda: os.times()[4]
 
@@ -624,6 +624,11 @@ class IOProcessTests(TestCase):
         with closing(proc):
             remoteMatches = proc.glob(os.path.join("/dsadasd", "*"))
             self.assertEquals(remoteMatches, [])
+
+    def test_closed(self):
+        proc = IOProcess(timeout=1, max_threads=5)
+        proc.close()
+        self.assertRaises(Closed, proc.echo, "foo", 1)
 
 
 class TestWeakerf(TestCase):
