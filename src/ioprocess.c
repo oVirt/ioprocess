@@ -796,7 +796,8 @@ static void stop_logging() {
 
 int main(int argc, char *argv[]) {
     int rv = 0;
-    int whitelist[] = {1, 2, -1, -1, -1};
+    int whitelist[] = {STDOUT_FILENO, STDERR_FILENO, -1, -1, -1};
+
     if (parseCmdLine(argc, argv) < 0) {
         return -1;
     }
