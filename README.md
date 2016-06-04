@@ -11,3 +11,15 @@ This is what ioprocess is for.
 - Small memory footprint per call.
 - Extensible
 - Easy integration with python and other languages.
+
+
+## Hacking
+
+To install required packages on rpm based system:
+
+    yum builddep ioprocess
+
+For python binding tests you will need tox; python-tox is too old on
+some systems, but you can get a recent version using pip:
+
+    pip install tox
