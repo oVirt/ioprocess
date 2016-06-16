@@ -75,6 +75,19 @@ Python bindings for ioprocess
 %license COPYING
 
 %changelog
+
+* Thu Jun 16 2016 Nir Soffer <nsoffer@redhat.com> 0.16.1-1
+- ioprocess: Fix logging of file descriptor path
+- ioprocess: Fix logger initialization
+- binding: Fix race between _run and close
+- binding: Add optional ioprocess name
+- ioprocess: Fix fd leak in truncate and touch (Resolves BZ#1339777)
+- python3: Initial port
+- build: Switch to pytest and tox
+- bindings: Use only daemon threads
+- use LDADD instead of LDFLAGS to fix failure to build with ld
+  --as-needed (Logan Rosen)
+
 * Fri Dec 11 2015 Sandro Bonazzola <sbonazzo@redhat.com> 0.15.1-1
 - Resolves: BZ#1287946
 - Fixed URL and Source0
