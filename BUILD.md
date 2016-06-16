@@ -82,10 +82,13 @@ This must be done for each dist you want to build this version for.
     (Write commit message, e.g. Import v0.15.1)
     fedpkg push
     fedpkg build
-    fedpkg update
+    fedpkg update (except master branch)
 
 This must be repeated for all the distribution branches that should have
 this version.
+
+Koji master branch should keep master branch (e.g. 0.17), other branches
+(e.g. f24) should have the release branches (e.g. 0.16).
 
 ### Testing new packages
 
@@ -96,7 +99,7 @@ some time, the package will move into the stable branch.
 When creating a new build, send mail to devel@ovirt.org and
 users@ovirt.org, and ask people to test the packages and give karma.
 
-Users can use this url for adding karm to packages:
+Users can use this url for adding karma to packages:
 https://bodhi.fedoraproject.org/updates/?packages=ioprocess
 
 
@@ -121,15 +124,21 @@ This must be done for each dist you want to build this version for.
 
 ### Creating build
 
-    rhpkg switch-branch f22
+    rhpkg switch-branch rhevm-4.0-rhel-7
     rhpkg import ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
     rhpkg commit
-    (Write commit message, e.g. Import v0.15.1)
+    (Write commit message, e.g. Import 0.15.1)
     rhpkg push
     rhpkg build
 
 This must be repeated for all the distribution branches that should have
 this version.
+
+Brew master branch is not used.
+
+### Errata
+
+New builds should be added to the errata.
 
 
 ## Reference
