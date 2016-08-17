@@ -62,7 +62,7 @@ BuildRequires:	util-linux
 Requires:	python
 Requires:	python-cpopen
 Requires:	python-six
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name} = %{version}
 
 %description -n python-ioprocess
 Python bindings for ioprocess
