@@ -65,6 +65,9 @@ Python bindings for ioprocess
 %license COPYING
 
 %changelog
+* Mon Aug 29 2016 Nir Soffer<nsoffer@redhat.com> 0.15.2-1
+- Resolves: BZ#1371634
+
 * Fri Dec 11 2015 Sandro Bonazzola <sbonazzo@redhat.com> 0.15.1-1
 - Resolves: BZ#1287946
 - Fixed URL and Source0
