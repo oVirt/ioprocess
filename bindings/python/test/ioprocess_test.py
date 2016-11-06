@@ -53,7 +53,7 @@ log = logging.getLogger("Test")
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s %(levelname)-7s [%(name)s] (%(threadName)s) %(message)s"
+    format="%(asctime)s %(levelname)-7s (%(threadName)s) [%(name)s] %(message)s"
 )
 
 
