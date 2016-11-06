@@ -199,7 +199,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         if USE_ZOMBIE_REAPER and zombiereaper is not None:
             zombiereaper.autoRipPID(proc.pid)
         else:
-            start_thread(proc.wait, name="ioprocess wait() thread")
+            start_thread(proc.wait, name="ioprocess/%d" % proc.pid)
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None:
@@ -395,7 +395,7 @@ class IOProcess(object):
         self._commthread = start_thread(
             _communicate,
             args,
-            name="ioprocess communication (%d)" % (proc.pid,),
+            name="ioprocess/%d" % (proc.pid,),
         )
 
         if self._started.wait(1):
