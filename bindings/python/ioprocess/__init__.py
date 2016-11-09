@@ -3,7 +3,7 @@ import os
 from select import poll, \
     POLLERR, POLLHUP, POLLPRI, POLLOUT, POLLIN, POLLWRBAND, \
     error
-from threading import Thread, Event, Lock
+from threading import Thread, Event, Lock, current_thread
 import fcntl
 import json
 from struct import Struct
@@ -20,6 +20,11 @@ try:
 except ImportError:
     cpopen = None
     import subprocess
+
+try:
+    from vdsm import pthread
+except ImportError:
+    pthread = None
 
 import six
 Queue = six.moves.queue.Queue
@@ -607,6 +612,9 @@ def start_thread(func, args=(), name=None, daemon=True):
 
     def run():
         try:
+            if pthread:
+                thread_name = current_thread().name
+                pthread.setname(thread_name[:15])
             return func(*args)
         except Exception:
             logging.exception("Unhandled error in thread %s", name)
