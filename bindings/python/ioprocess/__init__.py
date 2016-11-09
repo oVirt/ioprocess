@@ -604,7 +604,14 @@ class IOProcess(object):
 
 
 def start_thread(func, args=(), name=None, daemon=True):
-    t = Thread(target=func, args=args, name=name)
+
+    def run():
+        try:
+            return func(*args)
+        except Exception:
+            logging.exception("Unhandled error in thread %s", name)
+
+    t = Thread(target=run, name=name)
     t.daemon = daemon
     t.start()
     return t
