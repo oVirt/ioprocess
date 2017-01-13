@@ -315,11 +315,12 @@ class IOProcess(object):
     _counter = itertools.count()
 
     def __init__(self, max_threads=0, timeout=60, max_queued_requests=-1,
-                 name=None):
+                 name=None, wait_until_ready=2):
         self.timeout = timeout
         self._max_threads = max_threads
         self._max_queued_requests = max_queued_requests
         self._name = name or "ioprocess-%d" % next(self._counter)
+        self._wait_until_ready = wait_until_ready
         self._commandQueue = Queue()
         self._eventFdReciever, self._eventFdSender = os.pipe()
         self._reqId = 0
@@ -398,7 +399,7 @@ class IOProcess(object):
             name="ioprocess/%d" % (proc.pid,),
         )
 
-        if self._started.wait(1):
+        if self._started.wait(self._wait_until_ready):
             self._log.debug("Communication thread for client %s started",
                             self.name)
         else:
