@@ -326,10 +326,10 @@ class IOProcess(object):
         self._isRunning = True
         self._started = Event()
         self._lock = Lock()
+        self._partialLogs = ""
 
         self._log.info("Starting client %s", self.name)
         self._run()
-        self._partialLogs = ""
 
     @property
     def name(self):
