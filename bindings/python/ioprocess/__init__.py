@@ -32,14 +32,6 @@ Empty = six.moves.queue.Empty
 
 elapsed_time = lambda: os.times()[4]  # The system's monotonic timer
 
-try:
-    import vdsm.infra.zombiereaper as zombiereaper
-except ImportError:
-    try:
-        import zombiereaper
-    except ImportError:
-        zombiereaper = None
-
 from . import config
 
 Size = Struct("@Q")
@@ -65,8 +57,6 @@ StatvfsResult = namedtuple("StatvfsResult", "f_bsize, f_frsize, f_blocks,"
 DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
                       stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP |
                       stat.S_IROTH | stat.S_IXOTH)
-
-USE_ZOMBIE_REAPER = False
 
 _ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
@@ -196,10 +186,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         else:
             proc.kill()
 
-        if USE_ZOMBIE_REAPER and zombiereaper is not None:
-            zombiereaper.autoRipPID(proc.pid)
-        else:
-            start_thread(proc.wait, name="ioprocess/%d" % proc.pid)
+        start_thread(proc.wait, name="ioprocess/%d" % proc.pid)
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None:
