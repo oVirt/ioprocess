@@ -630,6 +630,13 @@ class IOProcessTests(TestCase):
         proc.close()
         self.assertRaises(Closed, proc.echo, "foo", 1)
 
+    def test_close_terminates_process(self):
+        for i in range(100):
+            proc = IOProcess(timeout=1, max_threads=5)
+            proc.close()
+            self.assertFalse(os.path.exists("/proc/%d" % proc.pid),
+                             "process %s did not terminate" % proc)
+
 
 class TestWeakerf(TestCase):
 

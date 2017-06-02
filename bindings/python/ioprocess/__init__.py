@@ -182,11 +182,10 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
 
         if IOProcess._DEBUG_VALGRIND:
             os.kill(proc.pid, signal.SIGTERM)
-            proc.wait()
         else:
             proc.kill()
 
-        start_thread(proc.wait, name="ioprocess/%d" % proc.pid)
+        proc.wait()
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None:
@@ -315,6 +314,7 @@ class IOProcess(object):
         self._started = Event()
         self._lock = Lock()
         self._partialLogs = ""
+        self._pid = None
 
         self._log.info("Starting client %s", self.name)
         self._run()
@@ -322,6 +322,10 @@ class IOProcess(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def pid(self):
+        return self._pid
 
     def _run(self):
         self._log.debug("Starting ioprocess for client %s", self.name)
@@ -355,6 +359,7 @@ class IOProcess(object):
                   ["--keep-fds"]
 
         p = _spawnProc(cmd)
+        self._pid = p.pid
 
         os.close(hisRead)
         os.close(hisWrite)
