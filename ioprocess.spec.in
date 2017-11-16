@@ -56,12 +56,12 @@ make install DESTDIR=%{buildroot}
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
 BuildRequires:	python
-BuildRequires:	python-cpopen
 BuildRequires:	python-six
+BuildRequires:	python-subprocess32
 BuildRequires:	util-linux
 Requires:	python
-Requires:	python-cpopen
 Requires:	python-six
+Requires:	python-subprocess32
 Requires:	%{name} = %{version}
 
 %description -n python-ioprocess

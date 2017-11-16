@@ -15,10 +15,12 @@ import stat
 import signal
 from weakref import ref
 
-try:
-    import cpopen
-except ImportError:
-    cpopen = None
+import six
+
+if six.PY2:
+    # subprocess32 improves reliability when using threads.
+    import subprocess32 as subprocess
+else:
     import subprocess
 
 try:
@@ -26,7 +28,6 @@ try:
 except ImportError:
     pthread = None
 
-import six
 Queue = six.moves.queue.Queue
 Empty = six.moves.queue.Empty
 
@@ -62,15 +63,12 @@ _ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
 
 def _spawnProc(cmd):
-    if cpopen:
-        return cpopen.CPopen(cmd)
-    else:
-        return subprocess.Popen(
-            cmd,
-            close_fds=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+    return subprocess.Popen(
+        cmd,
+        close_fds=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
 
 # Communicate is a function to prevent the bound method from strong referencing

@@ -3,9 +3,9 @@ autoconf
 automake
 git
 glib2-devel
-python-cpopen
 python-pip
 python-six
+python-subprocess32
 python2-devel
 python3-devel
 python3-six
