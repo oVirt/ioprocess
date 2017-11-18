@@ -62,15 +62,6 @@ DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
 _ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
 
-def _spawnProc(cmd):
-    return subprocess.Popen(
-        cmd,
-        close_fds=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-
-
 # Communicate is a function to prevent the bound method from strong referencing
 # ioproc
 def _communicate(ioproc_ref, proc, readPipe, writePipe):
@@ -356,7 +347,13 @@ class IOProcess(object):
                    "--leak-check=full", "--tool=memcheck"] + cmd + \
                   ["--keep-fds"]
 
-        p = _spawnProc(cmd)
+        p = subprocess.Popen(
+            cmd,
+            close_fds=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
         self._pid = p.pid
 
         os.close(hisRead)
