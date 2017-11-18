@@ -346,7 +346,7 @@ class IOProcess(object):
 
         p = subprocess.Popen(
             cmd,
-            close_fds=False,
+            pass_fds=(hisRead, hisWrite),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
