@@ -322,11 +322,8 @@ class IOProcess(object):
         hisRead, myWrite = os.pipe()
 
         for fd in (hisRead, hisWrite):
-            fcntl.fcntl(
-                fd,
-                fcntl.F_SETFD,
-                fcntl.fcntl(fd, fcntl.F_GETFD) & ~(fcntl.FD_CLOEXEC)
-            )
+            # Python 3 creates fds with the close-on-exec flag set.
+            clear_cloexec(fd)
 
         self._partialLogs = ""
 
@@ -594,6 +591,14 @@ class IOProcess(object):
 
     def __del__(self):
         self.close(False)
+
+
+def clear_cloexec(fd):
+    """
+    Make fd inheritable by a child process.
+    """
+    flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+    fcntl.fcntl(fd, fcntl.F_SETFD, flags & ~fcntl.FD_CLOEXEC)
 
 
 def start_thread(func, args=(), name=None, daemon=True):
