@@ -36,7 +36,14 @@ from unittest import TestCase
 from unittest.case import SkipTest
 from weakref import ref
 
-from ioprocess import IOProcess, ERR_IOPROCESS_CRASH, Closed, Timeout, config
+from ioprocess import (
+    IOProcess,
+    ERR_IOPROCESS_CRASH,
+    Closed,
+    Timeout,
+    config,
+    clear_cloexec
+)
 
 elapsed_time = lambda: os.times()[4]
 
@@ -636,6 +643,19 @@ class IOProcessTests(TestCase):
             proc.close()
             self.assertFalse(os.path.exists("/proc/%d" % proc.pid),
                              "process %s did not terminate" % proc)
+
+    def test_close_unrelated_fds(self):
+        # Make inheritable file descriptor.
+        with open(__file__) as my_file:
+            clear_cloexec(my_file.fileno())
+            proc = IOProcess(timeout=1, max_threads=5)
+            with closing(proc):
+                # Wait until ready.
+                proc.ping()
+                proc_fd = "/proc/%d/fd" % proc.pid
+                child_fds = [int(fd) for fd in os.listdir(proc_fd)]
+                # My file descriptor must not be inherited.
+                self.assertNotIn(my_file.fileno(), child_fds)
 
 
 class TestWeakerf(TestCase):
