@@ -1,8 +1,3 @@
-#python2_sitelib is declared as python_sitelib in EL6
-%if 0%{?rhel} && 0%{?rhel} <= 6
-%global python2_sitelib %{python_sitelib}
-%endif
-
 Name:		ioprocess
 Version:	@VERSION@
 Release:	@RELEASE@%{?release_suffix}%{?dist}
@@ -24,10 +19,6 @@ BuildRequires:	python2-devel
 BuildRequires:	glib2-devel
 BuildRequires:	yajl-devel
 Requires:	yajl
-#EL7 is able to autodetect library dependencies
-%if 0%{?rhel} && 0%{?rhel} <= 6
-Requires:	glib2 >= 2.28
-%endif
 
 %description
 Slave process to perform risky IO.
