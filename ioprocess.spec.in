@@ -43,7 +43,7 @@ make install DESTDIR=%{buildroot}
 %doc README.md AUTHORS
 %license COPYING
 
-%package -n python-ioprocess
+%package -n python2-ioprocess
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
 BuildRequires:	python
@@ -54,11 +54,12 @@ Requires:	python
 Requires:	python-six
 Requires:	python-subprocess32
 Requires:	%{name} = %{version}
+%{?python_provide:%python_provide python2-ioprocess}
 
-%description -n python-ioprocess
+%description -n python2-ioprocess
 Python bindings for ioprocess
 
-%files -n python-ioprocess
+%files -n python2-ioprocess
 %{!?_licensedir:%global license %doc}
 %{python2_sitelib}/ioprocess-*.egg-info
 %{python2_sitelib}/ioprocess/
