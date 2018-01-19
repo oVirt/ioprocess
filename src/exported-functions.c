@@ -404,7 +404,6 @@ JsonNode* exp_link(const JsonNode* args, GError** err) {
 JsonNode* exp_fsyncPath(const JsonNode* args, GError** err) {
     GString* path;
     GError* tmpError = NULL;
-    JsonNode* res;
     int fd;
 
     safeGetArgValues(args, &tmpError, 1,
@@ -422,10 +421,12 @@ JsonNode* exp_fsyncPath(const JsonNode* args, GError** err) {
         return NULL;
     }
 
-    res = stdApiWrapper(fsync(fd), err);
+    if (fsync(fd) != 0) {
+        set_error_from_errno(err, IOPROCESS_STDAPI_ERROR, errno);
+    }
 
     close(fd);
-    return res;
+    return NULL;
 }
 
 JsonNode* exp_symlink(const JsonNode* args, GError** err) {

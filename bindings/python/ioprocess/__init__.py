@@ -493,7 +493,7 @@ class IOProcess(object):
         return self._sendCommand("lexists", {"path": path}, self.timeout)
 
     def fsyncPath(self, path):
-        return self._sendCommand("lexists", {"path": path}, self.timeout)
+        self._sendCommand("fsyncPath", {"path": path}, self.timeout)
 
     def access(self, path, mode):
         try:

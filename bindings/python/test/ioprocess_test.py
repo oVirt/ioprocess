@@ -660,7 +660,6 @@ class IOProcessTests(TestCase):
                 self.assertNotIn(my_file.fileno(), child_fds)
 
 
-@pytest.mark.xfail(reason="fsyncPath is broken")
 def test_fsyncpath_file(tmpdir):
     proc = IOProcess(timeout=1, max_threads=1)
     with closing(proc):
@@ -671,7 +670,6 @@ def test_fsyncpath_file(tmpdir):
         assert proc.fsyncPath(str(path)) is None
 
 
-@pytest.mark.xfail(reason="fsyncPath is broken")
 def test_fsyncpath_directory(tmpdir):
     proc = IOProcess(timeout=1, max_threads=1)
     with closing(proc):
@@ -680,7 +678,6 @@ def test_fsyncpath_directory(tmpdir):
         assert proc.fsyncPath(str(tmpdir)) is None
 
 
-@pytest.mark.xfail(reason="fsyncPath is broken")
 def test_fsyncpath_missing(tmpdir):
     proc = IOProcess(timeout=1, max_threads=1)
     with closing(proc):
