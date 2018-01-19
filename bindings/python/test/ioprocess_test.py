@@ -36,6 +36,8 @@ from unittest import TestCase
 from unittest.case import SkipTest
 from weakref import ref
 
+import pytest
+
 from ioprocess import (
     IOProcess,
     ERR_IOPROCESS_CRASH,
@@ -656,6 +658,35 @@ class IOProcessTests(TestCase):
                 child_fds = [int(fd) for fd in os.listdir(proc_fd)]
                 # My file descriptor must not be inherited.
                 self.assertNotIn(my_file.fileno(), child_fds)
+
+
+@pytest.mark.xfail(reason="fsyncPath is broken")
+def test_fsyncpath_file(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=1)
+    with closing(proc):
+        path = tmpdir.join("file")
+        path.write("data")
+        # No easy way to test that we actually fsync this path. Lets just
+        # call it to make sure it does not fail.
+        assert proc.fsyncPath(str(path)) is None
+
+
+@pytest.mark.xfail(reason="fsyncPath is broken")
+def test_fsyncpath_directory(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=1)
+    with closing(proc):
+        # No easy way to test that we actually fsync this path. Lets just
+        # call it to make sure it does not fail.
+        assert proc.fsyncPath(str(tmpdir)) is None
+
+
+@pytest.mark.xfail(reason="fsyncPath is broken")
+def test_fsyncpath_missing(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=1)
+    with closing(proc):
+        with pytest.raises(OSError) as e:
+            proc.fsyncPath("/no/such/file")
+        assert e.value.errno == errno.ENOENT
 
 
 class TestWeakerf(TestCase):
