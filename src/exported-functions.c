@@ -612,6 +612,11 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
         bwritten += rv;
     }
 
+    if (fsync(fd) != 0) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+        goto clean;
+    }
+
 clean:
     if (data) {
         free(data);
