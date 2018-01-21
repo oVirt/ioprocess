@@ -20,6 +20,7 @@
 
 import errno
 import gc
+import io
 import logging
 import os
 import pprint
@@ -491,31 +492,6 @@ class IOProcessTests(TestCase):
     def testReadfileWithDirectIO(self):
         return self.testReadfile(True)
 
-    def testWritefile(self, direct=False):
-        data = b'''Jackie: I'm in my dressing gown.
-                   The Doctor: Yes, you are.
-                   Jackie: There's a strange man in my bedroom.
-                   The Doctor: Yes, there is.
-                   Jackie: Anything could happen.
-                   The Doctor: No. [walks away]'''  # (C) BBC - Doctor Who
-        # This test sometimes time out in the CI. On one failure, the write
-        # took 1.8 seconds inside ioprocess.
-        proc = IOProcess(timeout=10, max_threads=5)
-        with closing(proc):
-            fd, path = mkstemp(dir="/var/tmp")
-            try:
-                os.close(fd)
-                proc.writefile(path, data, direct)
-                with open(path, 'rb') as f:
-                    diskData = f.read()
-
-                self.assertEquals(diskData[:len(data)], data)
-            finally:
-                os.unlink(path)
-
-    def testWritefileWithDirectIO(self):
-        return self.testWritefile(True)
-
     def testListdir(self):
         proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
@@ -742,6 +718,49 @@ def check_stat(mystat, pystat):
             # good enough test.
             continue
         assert getattr(mystat, f) == getattr(pystat, f)
+
+
+@pytest.mark.parametrize("size", [0, 1, 512, 4096, 1024**2 + 1])
+def test_writefile(tmpdir, size):
+    data = b'x' * size
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        path = str(tmpdir.join("file"))
+        proc.writefile(path, data)
+        with io.open(path, 'rb') as f:
+            written = f.read()
+        assert written == data
+
+
+# TODO: Assumes storage with 512 bytes sector size. Need to test with 4k
+# storage.
+@pytest.mark.parametrize("size", [
+    0,
+    pytest.param(
+        512,
+        marks=pytest.mark.xfail(reason="writefile adds padding")),
+    1024**2
+])
+def test_writefile_direct_aligned(tmpdir, size):
+    data = b'x' * size
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        path = str(tmpdir.join("file"))
+        proc.writefile(path, data, direct=True)
+        with io.open(path, 'rb') as f:
+            written = f.read()
+        assert written == data
+
+
+@pytest.mark.xfail(reason="unaligned data should be rejected")
+def test_writefile_direct_reject_unaligned(tmpdir):
+    data = b'unaligned data'
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        path = str(tmpdir.join("file"))
+        with pytest.raises(OSError) as e:
+            proc.writefile(path, data, direct=True)
+        assert e.value.errno == errno.EINVAL
 
 
 class TestWeakerf(TestCase):
