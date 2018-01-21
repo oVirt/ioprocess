@@ -17,6 +17,14 @@
 
 #include "utils.h"
 
+/*
+ * Since Linux 2.6.0, alignment to the logical block size of the underlying
+ * storage (typically 512 bytes) suffices for direct I/O. However there is no
+ * way to detect the logical block size of the underlying storage via NFS, so
+ * we use a safe default.
+ */
+#define SAFE_ALIGN 4096
+
 
 static void set_error_from_errno(GError** err, GQuark domain, int errcode) {
     g_set_error(err, domain, errcode, "%s", iop_strerror(errcode));
@@ -544,12 +552,8 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
     gsize dataLen;
     int fd = -1;
     int flags = O_WRONLY | O_CREAT | O_TRUNC;
-    unsigned long ps = 0;
-    int fullBuffSize = -1;
     int rv;
     gsize bwritten;
-    unsigned long blocksize = 0;
-    struct statvfs svfs;
 
     safeGetArgValues(args, &tmpError, 3,
                      "path", JT_STRING, &path,
@@ -577,32 +581,16 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
 
     data = (char*) g_base64_decode(dataStr->str, &dataLen);
     if (direct) {
-        if (fstatvfs(fd, &svfs) < 0) {
-            set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
-            goto clean;
-        }
-
-        blocksize = svfs.f_bsize;
-        ps = svfs.f_frsize;
-
-        if (dataLen % blocksize == 0) {
-            fullBuffSize = dataLen;
-        } else {
-            fullBuffSize = dataLen + (blocksize - (dataLen % blocksize));
-        }
-
-        rv = posix_memalign((void**) &tmpBuff, ps, fullBuffSize);
+        rv = posix_memalign((void**) &tmpBuff, SAFE_ALIGN, dataLen);
         if (rv != 0) {
             set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
             goto clean;
         }
 
         memcpy(tmpBuff, data, dataLen);
-        memset(tmpBuff + dataLen, 0, fullBuffSize - dataLen);
         free(data);
         data = tmpBuff;
         tmpBuff = NULL;
-        dataLen = fullBuffSize;
     }
 
     bwritten = 0;

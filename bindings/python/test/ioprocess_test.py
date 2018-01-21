@@ -734,13 +734,7 @@ def test_writefile(tmpdir, size):
 
 # TODO: Assumes storage with 512 bytes sector size. Need to test with 4k
 # storage.
-@pytest.mark.parametrize("size", [
-    0,
-    pytest.param(
-        512,
-        marks=pytest.mark.xfail(reason="writefile adds padding")),
-    1024**2
-])
+@pytest.mark.parametrize("size", [0, 512, 1024**2])
 def test_writefile_direct_aligned(tmpdir, size):
     data = b'x' * size
     proc = IOProcess(timeout=10, max_threads=5)
@@ -752,8 +746,7 @@ def test_writefile_direct_aligned(tmpdir, size):
         assert written == data
 
 
-@pytest.mark.xfail(reason="unaligned data should be rejected")
-def test_writefile_direct_reject_unaligned(tmpdir):
+def test_writefile_direct_unaligned(tmpdir):
     data = b'unaligned data'
     proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
