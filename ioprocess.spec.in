@@ -46,12 +46,12 @@ make install DESTDIR=%{buildroot}
 %package -n python2-ioprocess
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
-BuildRequires:	python
-BuildRequires:	python-six
+BuildRequires:	python2
+BuildRequires:	python2-six
 BuildRequires:	python-subprocess32
 BuildRequires:	util-linux
-Requires:	python
-Requires:	python-six
+Requires:	python2
+Requires:	python2-six
 Requires:	python-subprocess32
 Requires:	%{name} = %{version}
 %{?python_provide:%python_provide python2-ioprocess}
@@ -67,6 +67,9 @@ Python bindings for ioprocess
 %license COPYING
 
 %changelog
+
+* XXX Nir Soffer <nsoffer@redhat.com> 1.0.1-1
+- spec: Require python2 packages instead of python
 
 * Tue Jan 30 2018 Nir Soffer <nsoffer@redhat.com> 1.0.0-1
 - ioprocess: Fix fsyncPath #BZ1536261
