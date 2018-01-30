@@ -69,8 +69,8 @@ Python bindings for ioprocess
 %changelog
 
 * Tue Jan 30 2018 Nir Soffer <nsoffer@redhat.com> 1.0.0-1
-- ioprocess: Fix fsyncPath
-- ioprocess: Wait until writefile completes
+- ioprocess: Fix fsyncPath #BZ1536261
+- ioprocess: Wait until writefile completes #BZ1535429
 - spec: Rename python binding to python2-ioprocess
 - spec: Remove leftovers from RHEL 6
 - python: Close unneeded fds before executing child
@@ -78,10 +78,10 @@ Python bindings for ioprocess
 - automation: Add missing repositories
 - python: Replace cpopen with subprocess32
 - python: Wait for child process on close
-- python: Increase the start timeout
-- python: Rename threads to match vdsm thread names
-- python: Set system thread names if possible
-- python: Log unhandled errors in threads
+- python: Increase the start timeout #BZ1414604
+- python: Rename threads to match vdsm thread names #BZ1392214
+- python: Set system thread names if possible #BZ1392214
+- python: Log unhandled errors in threads #BZ1392214
 - python: Require ioprocess of same version
 
 * Thu Jun 16 2016 Nir Soffer <nsoffer@redhat.com> 0.16.1-1
