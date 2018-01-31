@@ -9,3 +9,4 @@ python-subprocess32
 python2-devel
 util-linux
 yajl-devel
+yum
