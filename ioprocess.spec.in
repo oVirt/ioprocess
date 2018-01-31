@@ -1,3 +1,10 @@
+# Hack to require python2-* packages on Fedora, and python-* on RHEL.
+%if 0%{?rhel}
+%global python python
+%else
+%global python python2
+%endif
+
 Name:		ioprocess
 Version:	@VERSION@
 Release:	@RELEASE@%{?release_suffix}%{?dist}
@@ -46,12 +53,12 @@ make install DESTDIR=%{buildroot}
 %package -n python2-ioprocess
 Summary:	Python bindings for ioprocess
 BuildArch:	noarch
-BuildRequires:	python2
-BuildRequires:	python2-six
+BuildRequires:	%{python}
+BuildRequires:	%{python}-six
 BuildRequires:	python-subprocess32
 BuildRequires:	util-linux
-Requires:	python2
-Requires:	python2-six
+Requires:	%{python}
+Requires:	%{python}-six
 Requires:	python-subprocess32
 Requires:	%{name} = %{version}
 %{?python_provide:%python_provide python2-ioprocess}
