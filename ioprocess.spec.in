@@ -82,6 +82,9 @@ Python bindings for ioprocess
 
 %changelog
 
+* Sat Feb 03 2018 Nir Soffer <nsoffer@redhat.com> 1.0.2-1
+- spec: Remove Fedora only macro #BZ1541389
+
 * Tue Jan 30 2018 Nir Soffer <nsoffer@redhat.com> 1.0.0-1
 - ioprocess: Fix fsyncPath #BZ1536261
 - ioprocess: Wait until writefile completes #BZ1535429
