@@ -1,3 +1,7 @@
+# Note: this spec is used for RHEL, CentOS and Fedora. Plese do not use Fedora
+# only macros. If you want to suggest changes please do this upstream:
+# https://gerrit.ovirt.org/#/admin/projects/ioprocess
+
 Name:		ioprocess
 Version:	@VERSION@
 Release:	@RELEASE@%{?release_suffix}%{?dist}
@@ -54,7 +58,10 @@ Requires:	python
 Requires:	python-six
 Requires:	python-subprocess32
 Requires:	%{name} = %{version}
-%{?python_provide:%python_provide python2-ioprocess}
+
+# This package replaces python-ioprocess
+Provides: python-ioprocess = %{version}
+Obsoletes: python-ioprocess < %{version}
 
 %description -n python2-ioprocess
 Python bindings for ioprocess
