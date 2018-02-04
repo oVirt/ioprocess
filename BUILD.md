@@ -68,6 +68,14 @@ Notes:
 
     fedpkg clone ioprocess
 
+### Initializing Kerberos authentication
+
+To use fedpkg, you must use kinit:
+
+    kinit fedora-username@FEDORAPROJECT.ORG
+
+Enter your password for Fedora acount when asked.
+
 ### Creating scratch build
 
 This must be done for each dist you want to build this version for.
@@ -115,6 +123,14 @@ repository to get it. Ask release-eng for the details.
 ### Creating a release branch
 
 Ask release-eng to create the release branch.
+
+### Initializing Kerberos authentication
+
+To use rhpkg, you must use kinit:
+
+    kinit redhat-username@REDHAT.COM
+
+Enter your password for Red Hat acount when asked.
 
 ### Creating scratch build
 
