@@ -170,6 +170,7 @@ static ExportedFunctionEntry exportedFunctions[] = {
     { "crash", exp_crash },
     /* exported commands */
     { "stat", exp_stat },
+    { "lstat", exp_lstat },
     { "statvfs", exp_statvfs },
     { "access", exp_access },
     { "rename", exp_rename },

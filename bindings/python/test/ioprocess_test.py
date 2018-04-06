@@ -697,6 +697,42 @@ def test_stat_link_missing(tmpdir):
         assert myerror.value.errno == pyerror.value.errno
 
 
+def test_lstat_file(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        file = tmpdir.join("file")
+        file.write(b"x" * 100)
+        file = str(file)
+        check_stat(proc.lstat(file), os.lstat(file))
+
+
+def test_lstat_dir(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        dir = str(tmpdir)
+        check_stat(proc.lstat(dir), os.lstat(dir))
+
+
+def test_lstat_link(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        src = tmpdir.join("src")
+        src.write(b"x" * 100)
+        src = str(src)
+        link = str(tmpdir.join("link"))
+        os.symlink(src, link)
+        check_stat(proc.lstat(link), os.lstat(link))
+
+
+def test_lstat_link_missing(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        src = str(tmpdir.join("file"))
+        link = str(tmpdir.join("link"))
+        os.symlink(src, link)
+        check_stat(proc.lstat(link), os.lstat(link))
+
+
 def check_stat(mystat, pystat):
     for f in mystat._fields:
         if f in ("st_atime", "st_mtime", "st_ctime"):
