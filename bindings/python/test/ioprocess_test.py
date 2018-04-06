@@ -255,35 +255,6 @@ class IOProcessTests(TestCase):
             self.assertTrue(RSSDiff < acceptableRSSIncreasKB,
                             "Detected a leak sized %d KB" % RSSDiff)
 
-    def testStat(self):
-        data = b'''The Doctor: [to Craig's baby] No! He's your dad! You can't
-                               just call him "Not Mum".
-                   Craig: "Not Mum"?
-                   The Doctor: That's you! "Also Not Mum", that's me! And every
-                               body else is [gets near to hear baby]
-                               "Peasants"! That's a bit unfortunate...
-                 '''  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=1, max_threads=5)
-        with closing(proc):
-            fd, path = mkstemp()
-            try:
-                os.write(fd, data)
-                os.close(fd)
-                pystat = os.stat(path)
-                mystat = proc.stat(path)
-                for f in mystat._fields:
-                    if f in ("st_atime", "st_mtime", "st_ctime"):
-                        # These are float\double values and due to the many
-                        # conversion the values experience during marshaling
-                        # they cannot be equated. The rest of the fields are a
-                        # good enough test.
-                        continue
-
-                    log.debug("Testing field '%s'", f)
-                    self.assertEquals(getattr(mystat, f), getattr(pystat, f))
-            finally:
-                os.unlink(path)
-
     def testStatvfs(self):
         data = b'''Peter Puppy: Once again, evil is as rotting meat before
                                 the maggots of justice!
@@ -684,6 +655,57 @@ def test_fsyncpath_missing(tmpdir):
         with pytest.raises(OSError) as e:
             proc.fsyncPath("/no/such/file")
         assert e.value.errno == errno.ENOENT
+
+
+def test_stat_file(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        file = tmpdir.join("file")
+        file.write(b"x" * 100)
+        file = str(file)
+        check_stat(proc.stat(file), os.stat(file))
+
+
+def test_stat_dir(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        dir = str(tmpdir)
+        check_stat(proc.stat(dir), os.stat(dir))
+
+
+def test_stat_link(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        src = tmpdir.join("src")
+        src.write(b"x" * 100)
+        src = str(src)
+        link = str(tmpdir.join("link"))
+        os.symlink(src, link)
+        check_stat(proc.stat(link), os.stat(link))
+
+
+def test_stat_link_missing(tmpdir):
+    proc = IOProcess(timeout=1, max_threads=5)
+    with closing(proc):
+        src = str(tmpdir.join("file"))
+        link = str(tmpdir.join("link"))
+        os.symlink(src, link)
+        with pytest.raises(OSError) as myerror:
+            proc.stat(link)
+        with pytest.raises(OSError) as pyerror:
+            os.stat(link)
+        assert myerror.value.errno == pyerror.value.errno
+
+
+def check_stat(mystat, pystat):
+    for f in mystat._fields:
+        if f in ("st_atime", "st_mtime", "st_ctime"):
+            # These are float\double values and due to the many
+            # conversion the values experience during marshaling
+            # they cannot be equated. The rest of the fields are a
+            # good enough test.
+            continue
+        assert getattr(mystat, f) == getattr(pystat, f)
 
 
 class TestWeakerf(TestCase):
