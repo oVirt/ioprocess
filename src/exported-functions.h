@@ -29,6 +29,7 @@ void safeGetArgValue(const JsonNode *args, const char* argName,
                      JsonNodeType argType, void* out, GError** err);
 
 JsonNode* exp_stat(const JsonNode* args, GError** err);
+JsonNode* exp_lstat(const JsonNode* args, GError** err);
 JsonNode* exp_symlink(const JsonNode* args, GError** err);
 JsonNode* exp_truncate(const JsonNode* args, GError** err);
 JsonNode* exp_link(const JsonNode* args, GError** err);

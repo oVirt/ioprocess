@@ -778,11 +778,29 @@ end:
     return res;
 }
 
+static JsonNode* stat_map(struct stat *st) {
+    JsonNode* res = NULL;
+
+    res = JsonNode_newMap();
+    JsonNode_map_insert(res, "st_ino", JsonNode_newFromLong(st->st_ino), NULL);
+    JsonNode_map_insert(res, "st_dev", JsonNode_newFromLong(st->st_dev), NULL);
+    JsonNode_map_insert(res, "st_mode", JsonNode_newFromLong(st->st_mode), NULL);
+    JsonNode_map_insert(res, "st_nlink", JsonNode_newFromLong(st->st_nlink), NULL);
+    JsonNode_map_insert(res, "st_uid", JsonNode_newFromLong(st->st_uid), NULL);
+    JsonNode_map_insert(res, "st_gid", JsonNode_newFromLong(st->st_gid), NULL);
+    JsonNode_map_insert(res, "st_size", JsonNode_newFromLong(st->st_size), NULL);
+    JsonNode_map_insert(res, "st_atime", JsonNode_newFromDouble(st->st_atime), NULL);
+    JsonNode_map_insert(res, "st_mtime", JsonNode_newFromDouble(st->st_mtime), NULL);
+    JsonNode_map_insert(res, "st_ctime", JsonNode_newFromDouble(st->st_ctime), NULL);
+    JsonNode_map_insert(res, "st_blocks", JsonNode_newFromLong(st->st_blocks), NULL);
+
+    return res;
+}
+
 JsonNode* exp_stat(const JsonNode* args, GError** err) {
     struct stat st;
     GError* tmpError = NULL;
     GString* path = NULL;
-    JsonNode* res = NULL;
 
     safeGetArgValue(args, "path", JT_STRING, &path, &tmpError);
     if (tmpError) {
@@ -790,25 +808,29 @@ JsonNode* exp_stat(const JsonNode* args, GError** err) {
         return NULL;
     }
 
-    memset(&st, 0, sizeof(struct stat));
     if (stat(path->str, &st) < 0) {
         set_error_from_errno(err, IOPROCESS_STDAPI_ERROR, errno);
-        goto end;
+        return NULL;
     }
 
-    res = JsonNode_newMap();
-    JsonNode_map_insert(res, "st_ino", JsonNode_newFromLong(st.st_ino), NULL);
-    JsonNode_map_insert(res, "st_dev", JsonNode_newFromLong(st.st_dev), NULL);
-    JsonNode_map_insert(res, "st_mode", JsonNode_newFromLong(st.st_mode), NULL);
-    JsonNode_map_insert(res, "st_nlink", JsonNode_newFromLong(st.st_nlink), NULL);
-    JsonNode_map_insert(res, "st_uid", JsonNode_newFromLong(st.st_uid), NULL);
-    JsonNode_map_insert(res, "st_gid", JsonNode_newFromLong(st.st_gid), NULL);
-    JsonNode_map_insert(res, "st_size", JsonNode_newFromLong(st.st_size), NULL);
-    JsonNode_map_insert(res, "st_atime", JsonNode_newFromDouble(st.st_atime), NULL);
-    JsonNode_map_insert(res, "st_mtime", JsonNode_newFromDouble(st.st_mtime), NULL);
-    JsonNode_map_insert(res, "st_ctime", JsonNode_newFromDouble(st.st_ctime), NULL);
-    JsonNode_map_insert(res, "st_blocks", JsonNode_newFromLong(st.st_blocks), NULL);
-end:
-    return res;
+    return stat_map(&st);
 }
 
+JsonNode* exp_lstat(const JsonNode* args, GError** err) {
+    struct stat st;
+    GError* tmpError = NULL;
+    GString* path = NULL;
+
+    safeGetArgValue(args, "path", JT_STRING, &path, &tmpError);
+    if (tmpError) {
+        g_propagate_error(err, tmpError);
+        return NULL;
+    }
+
+    if (lstat(path->str, &st) < 0) {
+        set_error_from_errno(err, IOPROCESS_STDAPI_ERROR, errno);
+        return NULL;
+    }
+
+    return stat_map(&st);
+}

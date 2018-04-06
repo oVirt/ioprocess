@@ -471,6 +471,10 @@ class IOProcess(object):
         resdict = self._sendCommand("stat", {"path": path}, self.timeout)
         return dict2namedtuple(resdict, StatResult)
 
+    def lstat(self, path):
+        resdict = self._sendCommand("lstat", {"path": path}, self.timeout)
+        return dict2namedtuple(resdict, StatResult)
+
     def statvfs(self, path):
         resdict = self._sendCommand("statvfs", {"path": path}, self.timeout)
         return dict2namedtuple(resdict, StatvfsResult)
