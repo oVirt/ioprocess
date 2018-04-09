@@ -103,7 +103,8 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                 break
 
             if not real_ioproc._isRunning:
-                real_ioproc._log.info("shutdown requested")
+                real_ioproc._log.info("(%s) Shutdown requested",
+                                      real_ioproc.name)
                 break
 
             for fd, event in pollres:
@@ -127,8 +128,8 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         pendingReq.result = res
                         pendingReq.event.set()
                     else:
-                        real_ioproc._log.warning("Unknown request id %d",
-                                                 reqId)
+                        real_ioproc._log.warning("(%s) Unknown request id %d",
+                                                 real_ioproc.name, reqId)
 
                     continue
 
@@ -155,7 +156,8 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         poller.modify(writePipe, ERROR_FLAGS)
                         real_ioproc._pingPoller()
     except:
-        real_ioproc._log.error("IOProcess failure", exc_info=True)
+        real_ioproc._log.exception("(%s) Communication thread failed",
+                                   real_ioproc.name)
         for request in pendingRequests.values():
             request.result = {"errcode": ERR_IOPROCESS_CRASH,
                               "errstr": "ioprocess crashed unexpectedly"}
@@ -303,7 +305,7 @@ class IOProcess(object):
         self._partialLogs = ""
         self._pid = None
 
-        self._log.info("Starting client %s", self.name)
+        self._log.info("(%s) Starting client", self.name)
         self._run()
 
     @property
@@ -315,7 +317,7 @@ class IOProcess(object):
         return self._pid
 
     def _run(self):
-        self._log.debug("Starting ioprocess for client %s", self.name)
+        self._log.debug("(%s) Starting ioprocess", self.name)
         myRead, hisWrite = os.pipe()
         hisRead, myWrite = os.pipe()
 
@@ -365,12 +367,11 @@ class IOProcess(object):
             if e.errno == errno.EAGAIN:
                 return
             if not self._isRunning:
-                raise Closed("Client was closed")
+                raise Closed("Client %s was closed" % self.name)
             raise
 
     def _startCommunication(self, proc, readPipe, writePipe):
-        self._log.debug("Starting communication thread for client %s",
-                        self.name)
+        self._log.debug("(%s) Starting communication thread", self.name)
         self._started.clear()
 
         args = (ref(self), proc, readPipe, writePipe)
@@ -381,11 +382,10 @@ class IOProcess(object):
         )
 
         if self._started.wait(self._wait_until_ready):
-            self._log.debug("Communication thread for client %s started",
-                            self.name)
+            self._log.debug("(%s) Communication thread started", self.name)
         else:
-            self._log.warning("Timeout waiting for communication thread for "
-                              "client %s", self.name)
+            self._log.warning("(%s) Timeout waiting for communication thread",
+                              self.name)
 
     def _getRequestId(self):
         self._reqId += 1
@@ -420,18 +420,18 @@ class IOProcess(object):
             try:
                 level, logDomain, message = line.strip().split("|", 2)
             except:
-                self._log.warning("Invalid log message for client %s: %r",
+                self._log.warning("(%s) Invalid log message %r",
                                   self.name, line)
                 continue
 
             if level == "ERROR":
-                self._sublog.error(message)
+                self._sublog.error("(%s) %s", self.name, message)
             elif level == "WARNING":
-                self._sublog.warning(message)
+                self._sublog.warning("(%s) %s", self.name, message)
             elif level == "DEBUG":
-                self._sublog.debug(message)
+                self._sublog.debug("(%s) %s", self.name, message)
             elif level == "INFO":
-                self._sublog.info(message)
+                self._sublog.info("(%s) %s", self.name, message)
 
     def _sendCommand(self, cmdName, args, timeout=None):
         res = CmdResult()
@@ -581,13 +581,12 @@ class IOProcess(object):
                 return
             self._isRunning = False
 
-        self._log.info("Closing client %s", self.name)
+        self._log.info("(%s) Closing client", self.name)
         self._pingPoller()
         os.close(self._eventFdReciever)
         os.close(self._eventFdSender)
         if sync:
-            self._log.debug("Waiting for communication thread for %s",
-                            self.name)
+            self._log.debug("(%s) Waiting for communication thread", self.name)
             self._commthread.join()
 
     def __del__(self):
