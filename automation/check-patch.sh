@@ -12,4 +12,10 @@ make check
 
 automation/build-artifacts.sh
 
-yum install exported-artifacts/!(*.src).rpm
+if grep -q 'Fedora' /etc/redhat-release; then
+    DNF=dnf
+else
+    DNF=yum
+fi
+
+"$DNF" install exported-artifacts/!(*.src).rpm
