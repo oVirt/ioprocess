@@ -1,6 +1,7 @@
 # NOTE: this list was copied from ioprocess.spec
 autoconf
 automake
+gcc
 git
 glib2-devel
 python-pip
