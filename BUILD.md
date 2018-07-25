@@ -44,6 +44,8 @@ Notes:
   the release branch.
 - Any change must be added to the master version *before* adding it to
   the release branch.
+- If the change changes the behavior for the user, a changelog section
+  should be added to the ioprocess.spec.in file
 - The master branch version must always be greater than the release
   version: for example: 0.17.0 > 0.16.1
 
@@ -82,7 +84,7 @@ This must be done for each dist you want to build this version for.
 
     fedpkg --dist f24 scratch-build --srpm ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
 
-### Creating build
+### Creating build (in the previously cloned project)
 
     fedpkg switch-branch f22
     fedpkg import ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
@@ -117,6 +119,10 @@ https://bodhi.fedoraproject.org/updates/?packages=ioprocess
 
     dnf install rhpkg
 
+### Cloning the build repository
+
+    rhpkg clone ioprocess
+
 This seems to be internal Red Hat tool, so you need to add the RCM
 repository to get it. Ask release-eng for the details.
 
@@ -138,7 +144,7 @@ This must be done for each dist you want to build this version for.
 
     rhpkg --dist rhevm-4.0-rhel-7 scratch-build --srpm ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
 
-### Creating build
+### Creating build (in the previously cloned project)
 
     rhpkg switch-branch rhevm-4.0-rhel-7
     rhpkg import ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
@@ -154,8 +160,20 @@ Brew master branch is not used.
 
 ### Errata
 
-New builds should be added to the errata.
+New builds should be added to the errata -
+(Note that this is Red Hat tool and is not accessible to general public)
+https://errata.devel.redhat.com/errata.
 
+### Rebase Bug
+
+A rebase bug should be created to the new build.
+The rebase bug should be attached to the errata.
+- Product - RHEV-M
+- Component - ioprocess
+- Bug topic - Rebase ioprocess to $VERSION
+- Keywords - rebase
+- In order to attache the bug to the errata,
+  the bug status should be set to modified
 
 ## Reference
 
