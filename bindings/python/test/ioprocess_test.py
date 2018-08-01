@@ -22,10 +22,8 @@ import errno
 import gc
 import logging
 import os
-import os
 import pprint
 import shutil
-import subprocess
 import time
 
 from contextlib import closing
