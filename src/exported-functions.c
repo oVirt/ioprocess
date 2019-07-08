@@ -628,6 +628,7 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     int rv;
     int convertedLen;
     int rd;
+    int total_rd = 0;
     GString* path;
     JsonNode* result = NULL;
     GString* b64str = NULL;
@@ -642,6 +643,7 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     int b64State = 0;
     int b64Save = 0;
     struct statvfs svfs;
+    struct stat st;
 
 
     safeGetArgValues(args, &tmpError, 2,
@@ -660,6 +662,11 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
 
     fd = open(path->str, flags);
     if (fd == -1) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+        goto clean;
+    }
+
+    if (fstat(fd, &st) < 0) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
         goto clean;
     }
@@ -688,25 +695,35 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     /* We convert to base64 because json strings don't like some chars and I
      * don't blame them */
     b64str = g_string_new(NULL);
-    rd = read(fd, buff, buffsize);
-    while (rd > 0) {
+
+    /*
+     * If the file size is not aligned to block size (likely) and when using
+     * direct I/O, the last read will be short, returing the last bytes of the
+     * file. Once we reached to the end of an unaligned file, the next read
+     * will fail with EINVAL.
+     */
+    while (total_rd < st.st_size) {
+        rd = read(fd, buff, buffsize);
+
         if (rd < 0) {
             set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
-            convertedLen = g_base64_encode_close(FALSE, b64buff,
-                                                 &b64State, &b64Save);
+
+            /* Drop possible 4 bytes at end since we return NULL on errors. */
+            g_base64_encode_close(FALSE, b64buff, &b64State, &b64Save);
+
             goto clean;
         }
+
+        total_rd += rd;
 
         convertedLen = g_base64_encode_step((guchar*) buff, rd, FALSE, b64buff,
                                             &b64State, &b64Save);
 
         g_string_append_len(b64str, b64buff, convertedLen);
-
-        rd = read(fd, buff, buffsize);
     }
 
-    /* Empty files don't even start an encoder */
-    if (b64State || b64Save) {
+    /* Add up to 4 final bytes at end if we read some data. */
+    if (total_rd > 0) {
         convertedLen = g_base64_encode_close(FALSE, b64buff, &b64State, &b64Save);
         g_string_append_len(b64str, b64buff, convertedLen);
     }
