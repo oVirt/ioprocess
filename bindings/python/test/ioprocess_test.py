@@ -23,8 +23,8 @@ import gc
 import logging
 import os
 import pprint
-import re
 import shutil
+import sys
 import time
 
 from contextlib import closing
@@ -63,11 +63,6 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s %(levelname)-7s (%(threadName)s) [%(name)s] %(message)s"
 )
-
-
-def on_rawhide():
-    with open("/etc/redhat-release") as f:
-        return re.search(r"Rawhide", f.readline())
 
 
 def skip_in_valgrind(f):
@@ -751,8 +746,7 @@ def check_stat(mystat, pystat):
 class TestWeakerf(TestCase):
 
     @pytest.mark.xfail(
-        on_rawhide(),
-        reason="test fails randomly on rawhide")
+        sys.version_info[:2] == (3, 7), reason="fails in python 3.7")
     def test_close_when_unrefed(self):
         """Make sure there is nothing keepin IOProcess strongly referenced.
 
