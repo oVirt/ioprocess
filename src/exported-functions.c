@@ -562,6 +562,10 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
         return NULL;
     }
 
+    if (direct) {
+        flags |= O_DIRECT;
+    }
+
     fd = open(path->str, flags,
               S_IRUSR | S_IWUSR |
               S_IRGRP | S_IWGRP |
@@ -580,8 +584,6 @@ JsonNode* exp_writefile(const JsonNode* args, GError** err) {
 
         blocksize = svfs.f_bsize;
         ps = svfs.f_frsize;
-
-        flags |= O_DIRECT;
 
         if (dataLen % blocksize == 0) {
             fullBuffSize = dataLen;
