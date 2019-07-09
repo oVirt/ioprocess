@@ -655,6 +655,10 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
         return NULL;
     }
 
+    if (direct) {
+        flags |= O_DIRECT;
+    }
+
     fd = open(path->str, flags);
     if (fd == -1) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
@@ -681,10 +685,6 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     if (!b64buff) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
         goto clean;
-    }
-
-    if (direct) {
-        flags |= O_DIRECT;
     }
 
     /* We convert to base64 because json strings don't like some chars and I
