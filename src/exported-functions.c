@@ -636,7 +636,6 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
     int fd = -1;
     char* buff = NULL;
     int flags = O_RDONLY;
-    unsigned long ps = 0;
     unsigned long buffsize = 0;
     int b64buffsize = 0;
     char* b64buff = NULL;
@@ -670,12 +669,11 @@ JsonNode* exp_readfile(const JsonNode* args, GError** err) {
         goto clean;
     }
     buffsize = svfs.f_bsize;
-    ps = svfs.f_frsize;
     b64buffsize = (buffsize / 3 + 1) * 4 + 4;
 
     /* This is only important for direct reads but it doesn't matter if we have
      * it for regular reads as well */
-    rv = posix_memalign((void**) &buff, ps, buffsize);
+    rv = posix_memalign((void**) &buff, SAFE_ALIGN, buffsize);
     if (rv != 0) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, rv);
         goto clean;
