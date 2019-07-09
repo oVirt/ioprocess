@@ -79,7 +79,7 @@ def skip_in_valgrind(f):
 class IOProcessTests(TestCase):
 
     def testMaxRequests(self):
-        proc = IOProcess(timeout=5, max_threads=1, max_queued_requests=1)
+        proc = IOProcess(timeout=10, max_threads=1, max_queued_requests=1)
         with closing(proc):
             t1 = Thread(target=proc.echo, args=("hello", 2))
             t2 = Thread(target=proc.echo, args=("hello", 2))
@@ -102,7 +102,7 @@ class IOProcessTests(TestCase):
                 t2.join()
 
     def testMaxRequestsAfterFillingThreadPool(self):
-        proc = IOProcess(timeout=5, max_threads=3, max_queued_requests=0)
+        proc = IOProcess(timeout=10, max_threads=3, max_queued_requests=0)
         with closing(proc):
             t1 = Thread(target=proc.echo, args=("hello", 2))
             t2 = Thread(target=proc.echo, args=("hello", 2))
@@ -126,12 +126,12 @@ class IOProcessTests(TestCase):
             t2.join()
 
     def testPing(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertEquals(proc.ping(), "pong")
 
     def test2SubsequentCalls(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertEquals(proc.ping(), "pong")
             self.assertEquals(proc.ping(), "pong")
@@ -140,13 +140,13 @@ class IOProcessTests(TestCase):
         data = """The Doctor: But I don't exist in your world!
                   Brigade Leader: Then you won't feel the bullets when we
                   shoot you."""  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertEquals(proc.echo(data), data)
 
     def testUnicodeEcho(self):
         data = u'\u05e9\u05dc\u05d5\u05dd'
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertEquals(proc.echo(data), data)
 
@@ -158,7 +158,7 @@ class IOProcessTests(TestCase):
         threadnum = 10
         # We want to run all requests in parallel, so have one ioprocess thread
         # per client thread.
-        proc = IOProcess(timeout=2, max_threads=threadnum)
+        proc = IOProcess(timeout=10, max_threads=threadnum)
         with closing(proc):
             errors = []
             threads = []
@@ -183,7 +183,7 @@ class IOProcessTests(TestCase):
                                 [Stirs cup of tea with it]
                   Brigadier: I meant is there anything UNIT can do about this
                   space lightning business?"""  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertEquals(proc.echo(data), data)
             self.assertTrue(proc.crash())
@@ -219,6 +219,7 @@ class IOProcessTests(TestCase):
                   The Doctor: Usually called "The Doctor." Or "The Caretaker."
                   Or "Get off this planet." Though, strictly speaking, that
                   probably isn't a name."""  # (C) BBC - Doctor Who
+        # Using smaller timeout to ensure the echo will time out.
         proc = IOProcess(timeout=1, max_threads=5)
         with closing(proc):
             try:
@@ -260,7 +261,7 @@ class IOProcessTests(TestCase):
                    Earthworm Jim: Thank you for cramming that delightful image
                                   into my brain, Peter.
                 '''  # (C) Universal Cartoon Studios - Earth Worm Jim
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp()
             try:
@@ -284,7 +285,7 @@ class IOProcessTests(TestCase):
                 os.unlink(path)
 
     def testStatFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.stat("/I do not exist")
@@ -295,7 +296,7 @@ class IOProcessTests(TestCase):
                 raise AssertionError("OSError was not raised")
 
     def testMissingArguemt(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc._sendCommand("echo", {}, proc.timeout)
@@ -303,7 +304,7 @@ class IOProcessTests(TestCase):
                 self.assertEquals(e.errno, errno.EINVAL)
 
     def testNonExistingMethod(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc._sendCommand("Implode", {}, proc.timeout)
@@ -311,7 +312,7 @@ class IOProcessTests(TestCase):
                 self.assertEquals(e.errno, errno.EINVAL)
 
     def testPathExists(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp()
             try:
@@ -321,12 +322,12 @@ class IOProcessTests(TestCase):
                 os.unlink(path)
 
     def testPathDoesNotExist(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             self.assertFalse(proc.pathExists("/I do not exist"))
 
     def testRename(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, oldpath = mkstemp()
             newpath = oldpath + ".new"
@@ -344,7 +345,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testRenameFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.rename("/I/do/not/exist", "/Dsadsad")
@@ -355,7 +356,7 @@ class IOProcessTests(TestCase):
                 raise AssertionError("OSError was not raised")
 
     def testUnlink(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp()
             try:
@@ -368,7 +369,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testUnlinkFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.unlink("/I do not exist")
@@ -379,7 +380,7 @@ class IOProcessTests(TestCase):
                 raise AssertionError("OSError was not raised")
 
     def testLink(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, oldpath = mkstemp()
             newpath = oldpath + ".new"
@@ -394,7 +395,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testLinkFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.link("/I/do/not/exist", "/Dsadsad")
@@ -405,7 +406,7 @@ class IOProcessTests(TestCase):
                 raise AssertionError("OSError was not raised")
 
     def testSymlink(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, oldpath = mkstemp()
             newpath = oldpath + ".new"
@@ -422,7 +423,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testSymlinkFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.symlink("/Dsadsad", "/I/do/not/exist")
@@ -433,7 +434,7 @@ class IOProcessTests(TestCase):
                 raise AssertionError("OSError was not raised")
 
     def testChmod(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp()
             targetMode = os.W_OK | os.R_OK
@@ -447,7 +448,7 @@ class IOProcessTests(TestCase):
                 os.unlink(path)
 
     def testAccess(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp()
             try:
@@ -457,7 +458,7 @@ class IOProcessTests(TestCase):
                 os.unlink(path)
 
     def testChmodFail(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             try:
                 proc.chmod("/I/do/not/exist", 0)
@@ -476,7 +477,7 @@ class IOProcessTests(TestCase):
                    than-no, hold on. Sorry, that's The Lion King.
                    But the point still stands: leave them alone!
                    '''  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp(dir="/var/tmp")
             try:
@@ -499,7 +500,7 @@ class IOProcessTests(TestCase):
                    The Doctor: No. [walks away]'''  # (C) BBC - Doctor Who
         # This test sometimes time out in the CI. On one failure, the write
         # took 1.8 seconds inside ioprocess.
-        proc = IOProcess(timeout=5, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             fd, path = mkstemp(dir="/var/tmp")
             try:
@@ -516,7 +517,7 @@ class IOProcessTests(TestCase):
         return self.testWritefile(True)
 
     def testListdir(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             path = mkdtemp()
             matches = []
@@ -537,7 +538,7 @@ class IOProcessTests(TestCase):
                 shutil.rmtree(path)
 
     def testGlob(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             path = mkdtemp()
             matches = []
@@ -556,7 +557,7 @@ class IOProcessTests(TestCase):
                 shutil.rmtree(path)
 
     def testRmdir(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             path = mkdtemp()
 
@@ -570,7 +571,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testMkdir(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             path = mkdtemp()
             shutil.rmtree(path)
@@ -585,7 +586,7 @@ class IOProcessTests(TestCase):
                     pass
 
     def testLexists(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             path = "/tmp/linktest.ioprocesstest"
             try:
@@ -599,19 +600,19 @@ class IOProcessTests(TestCase):
                 os.unlink(path)
 
     def testGlobNothing(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
             remoteMatches = proc.glob(os.path.join("/dsadasd", "*"))
             self.assertEquals(remoteMatches, [])
 
     def test_closed(self):
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         proc.close()
         self.assertRaises(Closed, proc.echo, "foo", 1)
 
     def test_close_terminates_process(self):
         for i in range(100):
-            proc = IOProcess(timeout=1, max_threads=5)
+            proc = IOProcess(timeout=10, max_threads=5)
             proc.close()
             self.assertFalse(os.path.exists("/proc/%d" % proc.pid),
                              "process %s did not terminate" % proc)
@@ -620,7 +621,7 @@ class IOProcessTests(TestCase):
         # Make inheritable file descriptor.
         with open(__file__) as my_file:
             clear_cloexec(my_file.fileno())
-            proc = IOProcess(timeout=1, max_threads=5)
+            proc = IOProcess(timeout=10, max_threads=5)
             with closing(proc):
                 # Wait until ready.
                 proc.ping()
@@ -631,7 +632,7 @@ class IOProcessTests(TestCase):
 
 
 def test_fsyncpath_file(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=1)
+    proc = IOProcess(timeout=10, max_threads=1)
     with closing(proc):
         path = tmpdir.join("file")
         path.write("data")
@@ -641,7 +642,7 @@ def test_fsyncpath_file(tmpdir):
 
 
 def test_fsyncpath_directory(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=1)
+    proc = IOProcess(timeout=10, max_threads=1)
     with closing(proc):
         # No easy way to test that we actually fsync this path. Lets just
         # call it to make sure it does not fail.
@@ -649,7 +650,7 @@ def test_fsyncpath_directory(tmpdir):
 
 
 def test_fsyncpath_missing(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=1)
+    proc = IOProcess(timeout=10, max_threads=1)
     with closing(proc):
         with pytest.raises(OSError) as e:
             proc.fsyncPath("/no/such/file")
@@ -657,7 +658,7 @@ def test_fsyncpath_missing(tmpdir):
 
 
 def test_stat_file(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         file = tmpdir.join("file")
         file.write(b"x" * 100)
@@ -666,14 +667,14 @@ def test_stat_file(tmpdir):
 
 
 def test_stat_dir(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         dir = str(tmpdir)
         check_stat(proc.stat(dir), os.stat(dir))
 
 
 def test_stat_link(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         src = tmpdir.join("src")
         src.write(b"x" * 100)
@@ -684,7 +685,7 @@ def test_stat_link(tmpdir):
 
 
 def test_stat_link_missing(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         src = str(tmpdir.join("file"))
         link = str(tmpdir.join("link"))
@@ -697,7 +698,7 @@ def test_stat_link_missing(tmpdir):
 
 
 def test_lstat_file(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         file = tmpdir.join("file")
         file.write(b"x" * 100)
@@ -706,14 +707,14 @@ def test_lstat_file(tmpdir):
 
 
 def test_lstat_dir(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         dir = str(tmpdir)
         check_stat(proc.lstat(dir), os.lstat(dir))
 
 
 def test_lstat_link(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         src = tmpdir.join("src")
         src.write(b"x" * 100)
@@ -724,7 +725,7 @@ def test_lstat_link(tmpdir):
 
 
 def test_lstat_link_missing(tmpdir):
-    proc = IOProcess(timeout=1, max_threads=5)
+    proc = IOProcess(timeout=10, max_threads=5)
     with closing(proc):
         src = str(tmpdir.join("file"))
         link = str(tmpdir.join("link"))
@@ -754,7 +755,7 @@ class TestWeakerf(TestCase):
         work we need to make sure it doesn't prevent IOProcess from being
         garbage collected.
         """
-        proc = IOProcess(timeout=1, max_threads=5)
+        proc = IOProcess(timeout=10, max_threads=5)
         proc = ref(proc)
 
         end = elapsed_time() + 5.0
@@ -796,7 +797,7 @@ class LoggingTests(TestCase):
 
     def test_partial_logs(self):
         threads = []
-        proc = IOProcess(timeout=1, max_threads=10)
+        proc = IOProcess(timeout=10, max_threads=10)
         proc._sublog = FakeLogger()
 
         def worker():
