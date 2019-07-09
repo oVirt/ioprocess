@@ -469,29 +469,6 @@ class IOProcessTests(TestCase):
             else:
                 raise AssertionError("OSError was not raised")
 
-    def testReadfile(self, direct=False):
-        data = b'''The Doctor: Well... you could do that. Yeah, you could do
-                   that. Of course you could! But why? Look at these people,
-                   these human beings. Consider their potential! From the day
-                   they arrive on the planet, blinking, step into the sun,
-                   there is more to see than can ever be seen, more to do
-                   than-no, hold on. Sorry, that's The Lion King.
-                   But the point still stands: leave them alone!
-                   '''  # (C) BBC - Doctor Who
-        proc = IOProcess(timeout=10, max_threads=5)
-        with closing(proc):
-            fd, path = mkstemp(dir="/var/tmp")
-            try:
-                os.write(fd, data)
-                os.close(fd)
-                remoteData = proc.readfile(path, direct)
-                self.assertEquals(remoteData[:len(data)], data)
-            finally:
-                os.unlink(path)
-
-    def testReadfileWithDirectIO(self):
-        return self.testReadfile(True)
-
     def testListdir(self):
         proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
@@ -754,6 +731,33 @@ def test_writefile_direct_unaligned(tmpdir):
         with pytest.raises(OSError) as e:
             proc.writefile(path, data, direct=True)
         assert e.value.errno == errno.EINVAL
+
+
+@pytest.mark.parametrize("size", [0, 1, 42, 512, 4096, 1024**2 + 1])
+def test_readfile(tmpdir, size):
+    data = b'x' * size
+    path = str(tmpdir.join("file"))
+    with io.open(path, "wb") as f:
+        f.write(data)
+
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        read = proc.readfile(path)
+        assert read == data
+
+
+@pytest.mark.parametrize("size", [0, 1, 42, 512, 4096, 1024**2 + 1])
+def test_readfile_direct(tmpdir, size):
+    data = b'x' * size
+    path = str(tmpdir.join("file"))
+    with io.open(path, "wb") as f:
+        f.write(data)
+        os.fsync(f.fileno())
+
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        read = proc.readfile(path, direct=True)
+        assert read == data
 
 
 class TestWeakerf(TestCase):
