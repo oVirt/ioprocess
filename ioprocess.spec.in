@@ -146,6 +146,10 @@ Python bindings for ioprocess
 
 %changelog
 
+* Wed Jul 10 2019 Nir Soffer <nsoffer@redhat.com> 1.2.1-1
+- Fix writefile() to support 4k storage #BZ1592916
+- Fix readfile() with direct I/O #BZ1726834
+
 * Wed Apr 11 2018 Nir Soffer <nsoffer@redhat.com> 1.1.1-1
 - python: Log client name in all messages #BZ1550106
 - ioprocess: Add lstat() #BZ1564515
