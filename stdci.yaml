@@ -1,0 +1,19 @@
+archs:
+  - x86_64:
+      distributions:
+        - el7
+        - fc29
+        - fc30
+  - ppc64le:
+      distributions:
+        - el7
+  - s390x:
+      distributions:
+        - fc29
+
+release-branches:
+    master:
+        - ovirt-master
+        - ovirt-4.3
+    ioprocess-1.0:
+        - ovirt-4.2
