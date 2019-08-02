@@ -1,4 +1,3 @@
-# NOTE: this list was copied from ioprocess.spec
 autoconf
 automake
 gcc
