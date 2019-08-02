@@ -775,6 +775,19 @@ def test_readfile_direct(tmpdir, size):
         assert read == data
 
 
+@pytest.mark.parametrize("direct", [
+    pytest.param(True, id="direct"),
+    pytest.param(False, id="buffered"),
+])
+def test_readfile_missing(tmpdir, direct):
+    path = str(tmpdir.join("file"))
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        with pytest.raises(OSError) as e:
+            read = proc.readfile(path, direct=direct)
+        assert e.value.errno == errno.ENOENT
+
+
 class TestWeakerf(TestCase):
 
     @pytest.mark.xfail(
