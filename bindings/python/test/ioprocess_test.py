@@ -26,10 +26,11 @@ import os
 import platform
 import pprint
 import shutil
+import stat
 import sys
 import time
 
-from contextlib import closing
+from contextlib import closing, contextmanager
 from functools import wraps
 from tempfile import mkstemp, mkdtemp
 from threading import Thread
@@ -65,6 +66,10 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s %(levelname)-7s (%(threadName)s) [%(name)s] %(message)s"
 )
+
+
+requires_unprivileged_user = pytest.mark.skipif(
+    os.geteuid() == 0, reason="This test can not run as root")
 
 
 def on_s390x():
@@ -778,13 +783,73 @@ def test_readfile_missing(tmpdir, direct):
         assert e.value.errno == errno.ENOENT
 
 
-def test_access(tmpdir):
+ACCESS_PARAMS = [
+    (0o755, os.R_OK, True),
+    (0o300, os.R_OK, False),
+    (0o744, os.W_OK, True),
+    pytest.param(
+        0o444, os.W_OK, False,
+        marks=pytest.mark.xfail(reason="IOProcess ignores write mode")),
+    (0o755, os.X_OK, True),
+    pytest.param(
+        0o400, os.X_OK, False,
+        marks=pytest.mark.xfail(reason="IOProcess ignores execute mode")),
+    pytest.param(
+        0o300, os.W_OK | os.X_OK, True,
+        marks=pytest.mark.xfail(reason="IOProcess ignores W/X mode")),
+    (0o300, os.R_OK | os.W_OK | os.X_OK, False),
+]
+
+
+@pytest.mark.parametrize("mode, permission, expected_result", ACCESS_PARAMS)
+@requires_unprivileged_user
+def test_access_file(tmpdir, mode, permission, expected_result):
     proc = IOProcess(timeout=10, max_threads=5)
     f = tmpdir.join("file")
     f.write("")
     path = str(f)
+
     with closing(proc):
-        assert proc.access(path, os.W_OK) == True
+        with chmod(path, mode):
+            assert proc.access(path, permission) == os.access(path, permission)
+            assert proc.access(path, permission) == expected_result
+
+
+@pytest.mark.parametrize("mode, permission, expected_result", ACCESS_PARAMS)
+@requires_unprivileged_user
+def test_access_directory(tmpdir, mode, permission, expected_result):
+    proc = IOProcess(timeout=10, max_threads=5)
+    d = tmpdir.mkdir("subdir")
+    path = str(d)
+
+    with closing(proc):
+        with chmod(path, mode):
+            assert proc.access(path, permission) == os.access(path, permission)
+            assert proc.access(path, permission) == expected_result
+
+
+@contextmanager
+def chmod(path, mode):
+    """Changes path permissions.
+
+    Changes the path permissions to the requested ones and
+    reverts to the original permissions at the end.
+
+    Arguments:
+        path (str): file/directory path
+        mode (int): new mode
+    """
+
+    orig_mode = stat.S_IMODE(os.stat(path).st_mode)
+    os.chmod(path, mode)
+
+    try:
+        yield
+    finally:
+        try:
+            os.chmod(path, orig_mode)
+        except Exception as e:
+            logging.error("Failed to restore %r mode: %s", path, e)
 
 
 class TestWeakerf(TestCase):
