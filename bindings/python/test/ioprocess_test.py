@@ -89,29 +89,6 @@ def skip_in_valgrind(f):
 
 class IOProcessTests(TestCase):
 
-    def testMaxRequests(self):
-        proc = IOProcess(timeout=10, max_threads=1, max_queued_requests=1)
-        with closing(proc):
-            t1 = Thread(target=proc.echo, args=("hello", 2))
-            t2 = Thread(target=proc.echo, args=("hello", 2))
-            t1.start()
-            t2.start()
-            # Make sure the echo calls are sent prior to the ping otherwise one
-            # of them would fail and ping() would pass
-            time.sleep(0.5)
-
-            try:
-                proc.ping()
-            except OSError as e:
-                self.assertEquals(e.errno, errno.EAGAIN)
-            except Exception:
-                self.fail("Expected OSError got %s", e)
-            else:
-                self.fail("Expected exception")
-            finally:
-                t1.join()
-                t2.join()
-
     def testMaxRequestsAfterFillingThreadPool(self):
         proc = IOProcess(timeout=10, max_threads=3, max_queued_requests=0)
         with closing(proc):
@@ -583,6 +560,26 @@ class IOProcessTests(TestCase):
                 child_fds = [int(fd) for fd in os.listdir(proc_fd)]
                 # My file descriptor must not be inherited.
                 self.assertNotIn(my_file.fileno(), child_fds)
+
+
+def test_max_requests():
+    proc = IOProcess(timeout=10, max_threads=1, max_queued_requests=1)
+    with closing(proc):
+        t1 = Thread(target=proc.echo, args=("hello", 2))
+        t2 = Thread(target=proc.echo, args=("hello", 2))
+        t1.start()
+        t2.start()
+        # Make sure the echo calls are sent prior to the ping otherwise one
+        # of them would fail and ping() would pass.
+        time.sleep(0.5)
+
+        try:
+            with pytest.raises(OSError) as e:
+                proc.ping()
+            assert e.value.errno == errno.EAGAIN
+        finally:
+            t1.join()
+            t2.join()
 
 
 def test_fsyncpath_file(tmpdir):
