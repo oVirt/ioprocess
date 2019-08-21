@@ -787,16 +787,10 @@ ACCESS_PARAMS = [
     (0o755, os.R_OK, True),
     (0o300, os.R_OK, False),
     (0o744, os.W_OK, True),
-    pytest.param(
-        0o444, os.W_OK, False,
-        marks=pytest.mark.xfail(reason="IOProcess ignores write mode")),
+    (0o444, os.W_OK, False),
     (0o755, os.X_OK, True),
-    pytest.param(
-        0o400, os.X_OK, False,
-        marks=pytest.mark.xfail(reason="IOProcess ignores execute mode")),
-    pytest.param(
-        0o300, os.W_OK | os.X_OK, True,
-        marks=pytest.mark.xfail(reason="IOProcess ignores W/X mode")),
+    (0o400, os.X_OK, False),
+    (0o300, os.W_OK | os.X_OK, True),
     (0o300, os.R_OK | os.W_OK | os.X_OK, False),
 ]
 

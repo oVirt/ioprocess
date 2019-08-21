@@ -293,7 +293,7 @@ JsonNode* exp_access(const JsonNode* args, GError** err) {
         return NULL;
     }
 
-    return stdApiWrapper(access(path->str, R_OK), err);
+    return stdApiWrapper(access(path->str, mode), err);
 }
 
 JsonNode* exp_touch(const JsonNode* args, GError** err){
