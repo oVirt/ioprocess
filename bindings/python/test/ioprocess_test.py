@@ -454,16 +454,6 @@ class IOProcessTests(TestCase):
             finally:
                 os.unlink(path)
 
-    def testAccess(self):
-        proc = IOProcess(timeout=10, max_threads=5)
-        with closing(proc):
-            fd, path = mkstemp()
-            try:
-                os.close(fd)
-                self.assertTrue(proc.access(path, os.W_OK))
-            finally:
-                os.unlink(path)
-
     def testChmodFail(self):
         proc = IOProcess(timeout=10, max_threads=5)
         with closing(proc):
@@ -786,6 +776,15 @@ def test_readfile_missing(tmpdir, direct):
         with pytest.raises(OSError) as e:
             read = proc.readfile(path, direct=direct)
         assert e.value.errno == errno.ENOENT
+
+
+def test_access(tmpdir):
+    proc = IOProcess(timeout=10, max_threads=5)
+    f = tmpdir.join("file")
+    f.write("")
+    path = str(f)
+    with closing(proc):
+        assert proc.access(path, os.W_OK) == True
 
 
 class TestWeakerf(TestCase):
