@@ -843,14 +843,14 @@ def chmod(path, mode):
             logging.error("Failed to restore %r mode: %s", path, e)
 
 
-class TestWeakerf(TestCase):
+class TestWeakref(TestCase):
 
     @pytest.mark.xfail(
         sys.version_info[:2] == (3, 7), reason="fails in python 3.7")
     def test_close_when_unrefed(self):
-        """Make sure there is nothing keepin IOProcess strongly referenced.
+        """Make sure there is nothing keeping IOProcess strongly referenced.
 
-        Since there is a comminucation background thread doing all the hard
+        Since there is a communication background thread doing all the hard
         work we need to make sure it doesn't prevent IOProcess from being
         garbage collected.
         """
