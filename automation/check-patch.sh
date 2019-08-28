@@ -6,7 +6,7 @@ shopt -s extglob
 automation/setup.sh
 
 # tox on el7 is too old
-pip install tox
+pip install "more-itertools<6.0.0" tox
 
 make check
 
