@@ -582,16 +582,6 @@ def test_max_requests():
             t2.join()
 
 
-def test_fsyncpath_file(tmpdir):
-    proc = IOProcess(timeout=10, max_threads=1)
-    with closing(proc):
-        path = tmpdir.join("file")
-        path.write("data")
-        # No easy way to test that we actually fsync this path. Lets just
-        # call it to make sure it does not fail.
-        assert proc.fsyncPath(str(path)) is None
-
-
 def test_fsyncpath_directory(tmpdir):
     proc = IOProcess(timeout=10, max_threads=1)
     with closing(proc):
