@@ -587,7 +587,7 @@ def test_fsyncpath_directory(tmpdir):
     with closing(proc):
         # No easy way to test that we actually fsync this path. Lets just
         # call it to make sure it does not fail.
-        assert proc.fsyncPath(str(tmpdir)) is None
+        proc.fsyncPath(str(tmpdir))
 
 
 def test_fsyncpath_missing(tmpdir):
