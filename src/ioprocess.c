@@ -188,6 +188,7 @@ static ExportedFunctionEntry exportedFunctions[] = {
     { "mkdir", exp_mkdir },
     { "fsyncPath", exp_fsyncPath },
     { "touch", exp_touch },
+    { "probe_block_size", exp_probe_block_size },
     { NULL, NULL }
 };
 

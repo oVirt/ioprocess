@@ -51,4 +51,5 @@ JsonNode* exp_listdir(const JsonNode* args, GError** err);
 JsonNode* exp_mkdir(const JsonNode* args, GError** err);
 JsonNode* exp_touch(const JsonNode* args, GError** err);
 JsonNode* exp_fsyncPath(const JsonNode* args, GError** err);
+JsonNode* exp_probe_block_size(const JsonNode* args, GError** err);
 #endif

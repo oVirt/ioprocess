@@ -809,6 +809,84 @@ def test_access_directory(tmpdir, mode, permission, expected_result):
             assert proc.access(path, permission) == expected_result
 
 
+# TODO: Use userstorage instead of assuming block size.
+@pytest.mark.xfail(
+    on_s390x(),
+    reason="Assuming 512, on s390x we have 4k drives")
+def test_probe_block_size_512(tmpdir):
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        assert proc.probe_block_size(str(tmpdir)) == 512
+
+
+# TODO: Use userstorage instead of assuming block size.
+@pytest.mark.skipif(not on_s390x(), reason="Assuming block size 512")
+@pytest.mark.xfail(reason="Test assumes 4k block size on s390x")
+def test_probe_block_size_4096(tmpdir):
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        assert proc.probe_block_size(str(tmpdir)) == 4096
+
+
+def test_probe_block_size_unsupported():
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        # /dev/shm uses tempfs, does not support direct I/O.
+        with pytest.raises(OSError) as e:
+            proc.probe_block_size("/dev/shm")
+        assert e.value.errno == errno.EINVAL
+
+
+def test_probe_block_size_cleanup(tmpdir):
+    proc = IOProcess(timeout=10, max_threads=5)
+    with closing(proc):
+        proc.probe_block_size(str(tmpdir))
+    # Should not leave the probe temporary file around.
+    assert tmpdir.listdir() == []
+
+
+@requires_unprivileged_user
+def test_probe_block_size_not_writable(tmpdir):
+    no_write = str(tmpdir.mkdir("no-write-for-you"))
+    # Remove write bit, so the probe file cannot be created.
+    with chmod(no_write, 0o500):
+        proc = IOProcess(timeout=10, max_threads=5)
+        with closing(proc):
+            with pytest.raises(OSError) as e:
+                proc.probe_block_size(no_write)
+            assert e.value.errno == errno.EACCES
+
+
+def test_probe_block_size_concurrent(tmpdir):
+    proc = IOProcess(timeout=10, max_threads=20)
+    with closing(proc):
+        probe_dir = str(tmpdir)
+        threads = []
+        results = []
+
+        def worker():
+            for i in range(20):
+                res = proc.probe_block_size(probe_dir)
+                results.append(res)
+
+        try:
+            for i in range(20):
+                t = Thread(target=worker)
+                t.deamon = True
+                t.start()
+                threads.append(t)
+        finally:
+            for t in threads:
+                t.join()
+
+    # We should have identical prob results.
+    assert len(results) == 400
+    assert len(frozenset(results)) == 1
+
+    # And no leftover probe files.
+    assert tmpdir.listdir() == []
+
+
 @contextmanager
 def chmod(path, mode):
     """Changes path permissions.

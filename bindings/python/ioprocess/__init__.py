@@ -575,6 +575,32 @@ class IOProcess(object):
                                   "excl": excl},
                                  self.timeout)
 
+    def probe_block_size(self, dir_path):
+        """
+        Probe block size of the underling filesystem.
+
+        ioprocess tries to create a temporary unnamed file in dir_path; but if
+        the underlyng filesystem does not support the O_TMPFILE flag, a probe
+        file (e.g. ".probe-adca9f57-08a8-40a0-9904-8acb10fd503d") may be left
+        in the directory).
+
+        Arguments:
+            dir_path (str): path to directory to probe. ioprocess must have
+                execute and write access to this directory.
+
+        Return:
+            The block size of the underlying filesystem. Value of 1 means the
+            block size cannot be detected.
+
+        Raises:
+            OSError if the probing failed. Interesting errno values are:
+            - EINVAL: the filesystem does not support direct I/O.
+            - EEXIST: the probe file exists, caller may try again (unlikely)
+            - ENOMEM: no memory (unlikely)
+        """
+        return self._sendCommand(
+            "probe_block_size", {"dir": dir_path}, self.timeout)
+
     def close(self, sync=True):
         with self._lock:
             if not self._isRunning:

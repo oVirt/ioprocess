@@ -25,6 +25,7 @@
  */
 #define SAFE_ALIGN 4096
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static void set_error_from_errno(GError** err, GQuark domain, int errcode) {
     g_set_error(err, domain, errcode, "%s", iop_strerror(errcode));
@@ -838,4 +839,115 @@ JsonNode* exp_lstat(const JsonNode* args, GError** err) {
     }
 
     return stat_map(&st);
+}
+
+/**
+ * Open an unnamed temporary file at the directory dir. Return an open file
+ * descriptor or -errno if creating the temporary file failed.
+ */
+static int open_tempfile(GString *dir, int flags)
+{
+    gchar *uuid = NULL;
+    gchar *path = NULL;
+    int fd;
+
+    uuid = g_uuid_string_random();
+    if (uuid == NULL) {
+        fd = -ENOMEM; /* Not documented, guessing. */
+        goto out;
+    }
+
+    path = g_strdup_printf("%s/.prob-%s", dir->str, uuid);
+    if (path == NULL) {
+        fd = -ENOMEM; /* Not documented, guessing. */
+        goto out;
+    }
+
+    fd = open(path, flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    if (fd < 0) {
+        fd = -errno;
+        goto out;
+    }
+
+    if (unlink(path) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        fd = -saved_errno;
+    }
+
+out:
+    g_free(uuid);
+    g_free(path);
+
+    return fd;
+}
+
+JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
+    GError* tmpError = NULL;
+    GString* dir = NULL;
+    int sizes[] = {1, 512, 4096};
+    int fd;
+    int rv;
+    void *buf = NULL;
+    int block_size = -1;
+
+    safeGetArgValue(args, "dir", JT_STRING, &dir, &tmpError);
+    if (tmpError) {
+        g_propagate_error(err, tmpError);
+        return NULL;
+    }
+
+    /* O_DSYNC is required to enforce strict direct I/O if Gluster is
+     * configured without performance.strict-o-direct. */
+    fd = open_tempfile(dir, O_WRONLY | O_DIRECT | O_DSYNC);
+    if (fd < 0) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, -fd);
+        return NULL;
+    }
+
+    rv = posix_memalign(&buf, 4096, 4096);
+    if (rv != 0) {
+        /* posix_memalign does not set errno. */
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, rv);
+        goto out;
+    }
+
+    /* Don't leak memory contents. */
+    memset(buf, 0, 4096);
+
+    for (int i = 0; i < (int)ARRAY_SIZE(sizes); i++) {
+        block_size = sizes[i];
+
+        do {
+            rv = pwrite(fd, buf, block_size, 0);
+        } while (rv < 0 && errno == EINTR);
+
+        if (rv < 0) {
+            if (errno != EINVAL) {
+                /* Unexpected error, bail out. */
+                set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
+                block_size = -1;
+                goto out;
+            }
+
+            /* Expecting EINVAL - try the next value */
+            continue;
+        }
+
+        /* Some data was written; this block size is good. */
+        goto out;
+    }
+
+    /* All sizes failed, O_DIRECT is not supported. */
+    set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, EINVAL);
+    block_size = -1;
+
+out:
+    close(fd);
+    free(buf);
+
+    if (block_size == -1)
+        return NULL;
+
+    return JsonNode_newFromLong(block_size);
 }
