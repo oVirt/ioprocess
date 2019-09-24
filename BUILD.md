@@ -142,14 +142,14 @@ Enter your password for Red Hat acount when asked.
 
 This must be done for each dist you want to build this version for.
 
-    rhpkg --dist rhevm-4.0-rhel-7 scratch-build --srpm ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
+    rhpkg --dist rhevm-4.3-rhel-7 scratch-build --srpm ~/rpmbuild/SRPMS/ioprocess-1.3.0-1.fc28.src.rpm
 
 ### Creating build (in the previously cloned project)
 
-    rhpkg switch-branch rhevm-4.0-rhel-7
-    rhpkg import ~/rpmbuild/SRPMS/ioprocess-0.15.1-1.fc22.src.rpm
+    rhpkg switch-branch rhevm-4.3-rhel-7
+    rhpkg import ~/rpmbuild/SRPMS/ioprocess-1.3.0-1.fc28.src.rpm
     rhpkg commit
-    (Write commit message, e.g. Import 0.15.1)
+    (Write commit message, e.g. Import 1.3.0)
     rhpkg push
     rhpkg build
 
@@ -163,12 +163,14 @@ Brew master branch is not used.
 New builds should be added to the errata -
 (Note that this is Red Hat tool and is not accessible to general public)
 https://errata.devel.redhat.com/errata.
+- Release - RHV-4.3.z
+- Product: RHV
 
 ### Rebase Bug
 
 A rebase bug should be created to the new build.
 The rebase bug should be attached to the errata.
-- Product - RHEV-M
+- Product - RHEV-H
 - Component - ioprocess
 - Bug topic - Rebase ioprocess to $VERSION
 - Keywords - rebase
