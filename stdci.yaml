@@ -12,6 +12,7 @@ archs:
   - s390x:
       distributions:
         - fc29
+        - fc30
 
 release-branches:
     master:
