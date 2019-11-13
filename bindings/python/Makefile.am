@@ -20,10 +20,10 @@ dist-hook:
 	rm $(distdir)/ioprocess-$(VERSION).tar*
 
 install-data-local:
-	"$(PYTHON)" "$(srcdir)/setup.py" build -b "`readlink -f $(builddir)`" install --root "$(DESTDIR)/" --prefix "$(prefix)" clean -a
+	$(PYTHON) "$(srcdir)/setup.py" build -b "`readlink -f $(builddir)`" install --root "$(DESTDIR)/" --prefix "$(prefix)" clean -a
 
 uninstall-local:
-	rm -r `python -c 'from distutils import sysconfig; print sysconfig.get_python_lib(0,0,"$(DESTDIR)${prefix}")'`/ioprocess*
+	rm -r `$(PYTHON) -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"$(DESTDIR)${prefix}"))'`/ioprocess*
 
 $(srcdir)/ioprocess/config.py: $(srcdir)/ioprocess/config.py.in
 	sed -e "s,[@]IOPROCESS_DIR[@],$(IOPROCESS_DIR),g" \

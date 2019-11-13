@@ -2,30 +2,6 @@
 # only macros. If you want to suggest changes please do this upstream:
 # https://gerrit.ovirt.org/#/admin/projects/ioprocess
 
-%global _configure ../configure
-
-
-%if 0%{?rhel}
-%if 0%{?rhel} < 8
-%global with_python2 1
-%global with_python3 0
-%global python python
-%else
-%global with_python2 0
-%global with_python3 1
-%endif
-%endif
-
-%if 0%{?fedora}
-%global with_python3 1
-%if 0%{?fedora} < 30
-%global with_python2 1
-%global python python2
-%else
-%global with_python2 0
-%endif
-%endif
-
 Name:		ioprocess
 Version:	@VERSION@
 Release:	@RELEASE@%{?release_suffix}%{?dist}
@@ -44,16 +20,10 @@ Source:		https://github.com/oVirt/ioprocess/archive/v%{version}.tar.gz#/%{name}-
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	glib2-devel
-BuildRequires:	yajl-devel
-Requires:	yajl
-
-%if %with_python2
-BuildRequires:	python2-devel
-%endif
-
-%if %with_python3
 BuildRequires:	python3-devel
-%endif
+BuildRequires:	yajl-devel
+
+Requires:	yajl
 
 
 %description
@@ -62,33 +32,15 @@ Slave process to perform risky IO.
 
 %prep
 %setup -q %{name}-%{version}
-mkdir py2 py3
 
 
 %build
-%if %with_python2
-pushd py2
-%configure PYTHON="%{__python2}"
+%configure
 make %{?_smp_mflags}
-popd
-%endif
-
-%if %with_python3
-pushd py3
-%configure PYTHON="%{__python3}"
-make %{?_smp_mflags}
-popd
-%endif
 
 
 %install
-%if 0%{?with_python2}
-make -C py2 %{?_smp_mflags} install DESTDIR="%{buildroot}"
-%endif # with_python2
-
-%if 0%{?with_python3}
-make -C py3 %{?_smp_mflags} install DESTDIR="%{buildroot}"
-%endif # with_python3
+make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 
 %files
 %{!?_licensedir:%global license %doc}
@@ -96,34 +48,6 @@ make -C py3 %{?_smp_mflags} install DESTDIR="%{buildroot}"
 %doc README.md AUTHORS
 %license COPYING
 
-%if %with_python2
-%package -n python2-ioprocess
-Summary:	Python bindings for ioprocess
-BuildRequires:	%{python}
-BuildRequires:	%{python}-six
-BuildRequires:	python-subprocess32
-BuildRequires:	util-linux
-Requires:	%{python}
-Requires:	%{python}-six
-Requires:	python-subprocess32
-Requires:	%{name} = %{version}
-
-# This package replaces python-ioprocess
-Provides: python-ioprocess = %{version}
-Obsoletes: python-ioprocess < %{version}
-
-%description -n python2-ioprocess
-Python bindings for ioprocess
-
-%files -n python2-ioprocess
-%{!?_licensedir:%global license %doc}
-%{python2_sitelib}/ioprocess-*.egg-info
-%{python2_sitelib}/ioprocess/
-%doc README.md AUTHORS
-%license COPYING
-%endif
-
-%if %with_python3
 %package -n python3-ioprocess
 Summary:	Python bindings for ioprocess
 BuildRequires:	python3
@@ -141,7 +65,6 @@ Python bindings for ioprocess
 %{python3_sitelib}/ioprocess/
 %doc README.md AUTHORS
 %license COPYING
-%endif
 
 
 %changelog
