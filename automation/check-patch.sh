@@ -9,10 +9,10 @@ export PATH="/usr/local/bin:$PATH"
 
 # First upgrade pip, since older pip versions have issues with installing
 # correct version of requirements.
-${CI_PYTHON} -m pip install --upgrade pip
+python3 -m pip install --upgrade pip
 
 # Install development requirements.
-${CI_PYTHON} -m pip install --upgrade tox
+python3 -m pip install --upgrade tox
 
 automation/setup.sh
 
