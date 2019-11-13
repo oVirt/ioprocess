@@ -13,10 +13,4 @@ make check
 
 automation/build-artifacts.sh
 
-if [ -x /usr/bin/dnf ] ; then
-    DNF=dnf
-else
-    DNF=yum
-fi
-
-"$DNF" install exported-artifacts/!(*.src).rpm
+dnf install exported-artifacts/!(*.src).rpm

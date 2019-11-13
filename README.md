@@ -17,7 +17,7 @@ This is what ioprocess is for.
 
 To install required packages on rpm based system:
 
-    yum builddep ioprocess
+    dnf builddep ioprocess
 
 For python binding tests you will need tox; python-tox is too old on
 some systems, but you can get a recent version using pip:
