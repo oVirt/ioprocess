@@ -1,3 +1,0 @@
-# For subprocess32
-centos-ovirt-common-testing,https://cbs.centos.org/repos/virt7-ovirt-common-testing/$basearch/os
-centos-ovirt-common-release,https://cbs.centos.org/repos/virt7-ovirt-common-release/$basearch/os
