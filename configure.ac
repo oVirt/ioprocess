@@ -29,7 +29,7 @@ else
 fi
 
 AC_SUBST([IOPROCESS_CFLAGS])
-AM_PATH_PYTHON([2.6])
+AM_PATH_PYTHON([3])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/statvfs.h unistd.h])
