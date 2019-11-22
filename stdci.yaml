@@ -17,6 +17,7 @@ archs:
 release-branches:
     master:
         - ovirt-master
+    ovirt-4.3:
         - ovirt-4.3
     ioprocess-1.0:
         - ovirt-4.2
