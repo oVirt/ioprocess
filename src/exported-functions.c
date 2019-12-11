@@ -841,52 +841,71 @@ JsonNode* exp_lstat(const JsonNode* args, GError** err) {
     return stat_map(&st);
 }
 
+struct probe {
+    int fd;
+    gchar *path;
+};
+
 /**
- * Open an unnamed temporary file at the directory dir. Return an open file
- * descriptor or -errno if creating the temporary file failed.
+ * Open a probe file at the directory dir. Returns 0 on success and -errno if
+ * creating the temporary file failed.
  */
-static int open_tempfile(GString *dir, int flags)
+static int open_probe(struct probe *probe, GString *dir, int flags)
 {
     gchar *uuid = NULL;
     gchar *path = NULL;
-    int fd;
+    int err = 0;
 
     uuid = g_uuid_string_random();
     if (uuid == NULL) {
-        fd = -ENOMEM; /* Not documented, guessing. */
+        err = -ENOMEM; /* Not documented, guessing. */
         goto out;
     }
 
     path = g_strdup_printf("%s/.prob-%s", dir->str, uuid);
     if (path == NULL) {
-        fd = -ENOMEM; /* Not documented, guessing. */
+        err = -ENOMEM; /* Not documented, guessing. */
         goto out;
     }
 
-    fd = open(path, flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-    if (fd < 0) {
-        fd = -errno;
+    probe->fd = open(path, flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    if (probe->fd < 0) {
+        err = -errno;
         goto out;
     }
 
-    if (unlink(path) != 0) {
-        int saved_errno = errno;
-        close(fd);
-        fd = -saved_errno;
-    }
+    probe->path = path;
 
 out:
     g_free(uuid);
-    g_free(path);
 
-    return fd;
+    if (err != 0)
+        g_free(path);
+
+    return err;
+}
+
+static int close_probe(struct probe *probe)
+{
+    int err = 0;
+
+    if (probe->fd != -1) {
+        close(probe->fd);
+
+        if (unlink(probe->path) != 0)
+            err = -errno;
+
+        g_free(probe->path);
+    }
+
+    return err;
 }
 
 JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
     GError* tmpError = NULL;
     GString* dir = NULL;
+    struct probe probe = {-1};
     int sizes[] = {1, 512, 4096};
-    int fd;
     int rv;
     void *buf = NULL;
     int block_size = -1;
@@ -899,9 +918,9 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
 
     /* O_DSYNC is required to enforce strict direct I/O if Gluster is
      * configured without performance.strict-o-direct. */
-    fd = open_tempfile(dir, O_WRONLY | O_DIRECT | O_DSYNC);
-    if (fd < 0) {
-        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, -fd);
+    rv = open_probe(&probe, dir, O_WRONLY | O_DIRECT | O_DSYNC);
+    if (rv != 0) {
+        set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, -rv);
         return NULL;
     }
 
@@ -919,7 +938,7 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
         block_size = sizes[i];
 
         do {
-            rv = pwrite(fd, buf, block_size, 0);
+            rv = pwrite(probe.fd, buf, block_size, 0);
         } while (rv < 0 && errno == EINTR);
 
         if (rv < 0) {
@@ -943,7 +962,7 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
     block_size = -1;
 
 out:
-    close(fd);
+    close_probe(&probe);
     free(buf);
 
     if (block_size == -1)
