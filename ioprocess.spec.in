@@ -19,6 +19,7 @@ Source:		https://github.com/oVirt/ioprocess/archive/v%{version}.tar.gz#/%{name}-
 
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	gcc
 BuildRequires:	glib2-devel
 BuildRequires:	python3-devel
 BuildRequires:	yajl-devel
