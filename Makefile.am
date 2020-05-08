@@ -22,11 +22,18 @@ SUBDIRS = src bindings
 
 .PHONY: srpm rpm
 
-srpm: dist
-	rpmbuild -ts $(DIST_ARCHIVES)
+OUTDIR = $(PWD)/build/out
+RPMDIR = $(PWD)/build/rpm
 
-rpm: dist
-	rpmbuild -ta $(DIST_ARCHIVES)
+srpm: dist
+	rpmbuild --define="_topdir $(RPMDIR)" \
+		--define="_srcrpmdir $(OUTDIR)" \
+		-ts $(DIST_ARCHIVES)
+
+rpm: srpm
+	rpmbuild --define="_topdir $(RPMDIR)" \
+		-rb "$(OUTDIR)"/ioprocess-*.src.rpm
+	mv "$(RPMDIR)"/RPMS/*/* "$(OUTDIR)"
 
 EXTRA_DIST = ioprocess.spec.in \
 	     ioprocess.spec \
@@ -39,3 +46,6 @@ CLEANFILES = ioprocess.spec \
 
 all-local: ioprocess.spec \
 	   $(NULL)
+
+clean-local:
+	-rm -rf build
