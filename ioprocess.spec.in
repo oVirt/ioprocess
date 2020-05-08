@@ -4,7 +4,7 @@
 
 Name:		ioprocess
 Version:	@VERSION@
-Release:	@RELEASE@%{?release_suffix}%{?dist}
+Release:	@RELEASE@@RELEASE_SUFFIX@%{?dist}
 Summary:	Slave process to perform risky IO
 
 Group:		System Environment/Base
