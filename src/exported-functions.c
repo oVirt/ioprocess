@@ -859,17 +859,23 @@ static int create_probe(struct probe *probe, GString *dir, int flags)
     uuid = g_uuid_string_random();
     if (uuid == NULL) {
         err = -ENOMEM; /* Not documented, guessing. */
+        g_warning("Failed to create a probe file, 'g_uuid_string_random' "
+                  "failed, error: '%s'", iop_strerror(-err));
         goto out;
     }
 
     path = g_strdup_printf("%s/.prob-%s", dir->str, uuid);
     if (path == NULL) {
         err = -ENOMEM; /* Not documented, guessing. */
+        g_warning("Failed to create a probe file, 'g_strdup_printf' "
+                  "failed, error: '%s'", iop_strerror(-err));
         goto out;
     }
 
     probe->fd = open(path, flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
     if (probe->fd < 0) {
+        g_warning("Failed to create a probe file: '%s', error: '%s'",
+                  path, iop_strerror(errno));
         err = -errno;
         goto out;
     }
@@ -892,8 +898,11 @@ static int delete_probe(struct probe *probe)
     if (probe->fd != -1) {
         close(probe->fd);
 
-        if (unlink(probe->path) != 0)
+        if (unlink(probe->path) != 0) {
+            g_warning("Failed to delete a probe file: '%s', error: '%s'",
+                      probe->path, iop_strerror(errno));
             err = -errno;
+        }
 
         g_free(probe->path);
     }
@@ -927,6 +936,8 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
     rv = posix_memalign(&buf, 4096, 4096);
     if (rv != 0) {
         /* posix_memalign does not set errno. */
+        g_warning("Failed to allocate 4K aligned memory, error: '%s'",
+                  iop_strerror(rv));
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, rv);
         goto out;
     }
@@ -946,6 +957,8 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
         if (rv < 0) {
             if (errno != EINVAL) {
                 /* Unexpected error, bail out. */
+                g_warning("Failed to write %d bytes to probe file: '%s', error: '%s'",
+                          block_size, probe.path, iop_strerror(errno));
                 set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, errno);
                 block_size = -1;
                 goto out;

@@ -25,6 +25,7 @@ import logging
 import os
 import platform
 import pprint
+import re
 import shutil
 import stat
 import sys
@@ -851,10 +852,14 @@ def test_probe_block_size_not_writable(tmpdir):
     # Remove write bit, so the probe file cannot be created.
     with chmod(no_write, 0o500):
         proc = IOProcess(timeout=10, max_threads=5)
+        proc._sublog = FakeLogger()
         with closing(proc):
             with pytest.raises(OSError) as e:
                 proc.probe_block_size(no_write)
             assert e.value.errno == errno.EACCES
+            warning = re.compile(r"Failed to create a probe file: .+?, "
+                                 r"error: 'Permission denied'")
+            assert any(warning.search(msg) for msg in proc._sublog.messages)
 
 
 def test_probe_block_size_concurrent(tmpdir):
