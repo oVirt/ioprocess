@@ -847,10 +847,10 @@ struct probe {
 };
 
 /**
- * Open a probe file at the directory dir. Returns 0 on success and -errno if
- * creating the temporary file failed.
+ * Create a probe file at the directory dir.
+ * Returns 0 on success and -errno if creating the temporary file failed.
  */
-static int open_probe(struct probe *probe, GString *dir, int flags)
+static int create_probe(struct probe *probe, GString *dir, int flags)
 {
     gchar *uuid = NULL;
     gchar *path = NULL;
@@ -885,7 +885,7 @@ out:
     return err;
 }
 
-static int close_probe(struct probe *probe)
+static int delete_probe(struct probe *probe)
 {
     int err = 0;
 
@@ -918,7 +918,7 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
 
     /* O_DSYNC is required to enforce strict direct I/O if Gluster is
      * configured without performance.strict-o-direct. */
-    rv = open_probe(&probe, dir, O_WRONLY | O_DIRECT | O_DSYNC);
+    rv = create_probe(&probe, dir, O_WRONLY | O_DIRECT | O_DSYNC);
     if (rv != 0) {
         set_error_from_errno(err, IOPROCESS_GENERAL_ERROR, -rv);
         return NULL;
@@ -934,6 +934,8 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
     /* Don't leak memory contents. */
     memset(buf, 0, 4096);
 
+    /* Try to write to the file with different block sizes.
+     * Handle expected EINVAL errors. */
     for (int i = 0; i < (int)ARRAY_SIZE(sizes); i++) {
         block_size = sizes[i];
 
@@ -962,7 +964,11 @@ JsonNode* exp_probe_block_size(const JsonNode* args, GError** err) {
     block_size = -1;
 
 out:
-    close_probe(&probe);
+    /*
+     * Delete the probe file. Do not fail the operation if this fail, since
+     * we may have succeeded to probe the block size, or already
+     * failed because of other reasons. */
+    delete_probe(&probe);
     free(buf);
 
     if (block_size == -1)
