@@ -119,7 +119,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
 
                 if fd == readPipe:
                     if not responseReader.process():
-                        return
+                        continue
 
                     res = responseReader.pop()
                     reqId = res['id']
