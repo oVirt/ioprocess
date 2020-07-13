@@ -62,6 +62,17 @@ DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
 _ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
 
+class PollError(Exception):
+    msg = "Poll error {self.error} on fd {self.fd}"
+
+    def __init__(self, fd, error):
+        self.fd = fd
+        self.error = error
+
+    def __str__(self):
+        return self.msg.format(self=self)
+
+
 # Communicate is a function to prevent the bound method from strong referencing
 # ioproc
 def _communicate(ioproc_ref, proc, readPipe, writePipe):
@@ -109,9 +120,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
 
             for fd, event in pollres:
                 if event & ERROR_FLAGS:
-                    # If any FD closed something is wrong
-                    # This is just to trigger the error flow
-                    raise Exception("FD closed")
+                    raise PollError(fd, event & ERROR_FLAGS)
 
                 if fd == err:
                     real_ioproc._processLogs(os.read(fd, 1024))
@@ -155,14 +164,15 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         dataSender = None
                         poller.modify(writePipe, ERROR_FLAGS)
                         real_ioproc._pingPoller()
+    except PollError as e:
+        # Normal during shutdown - don't log an error.
+        real_ioproc._log.info("(%s) %s", real_ioproc.name, e)
+        _cleanup(pendingRequests)
     except:
-        real_ioproc._log.exception("(%s) Communication thread failed",
-                                   real_ioproc.name)
-        for request in pendingRequests.values():
-            request.result = {"errcode": ERR_IOPROCESS_CRASH,
-                              "errstr": "ioprocess crashed unexpectedly"}
-            request.event.set()
-
+        # Unexpected error.
+        real_ioproc._log.exception(
+            "(%s) Communication thread failed", real_ioproc.name)
+        _cleanup(pendingRequests)
     finally:
         os.close(readPipe)
         os.close(writePipe)
@@ -181,6 +191,13 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
             with real_ioproc._lock:
                 if real_ioproc._isRunning:
                     real_ioproc._run()
+
+
+def _cleanup(pending):
+    for request in pending.values():
+        request.result = {"errcode": ERR_IOPROCESS_CRASH,
+                          "errstr": "ioprocess crashed unexpectedly"}
+        request.event.set()
 
 
 def dict2namedtuple(d, ntType):
