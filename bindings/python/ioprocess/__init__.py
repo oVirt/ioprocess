@@ -179,12 +179,24 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         if (evtReciever >= 0):
             os.close(evtReciever)
 
-        if IOProcess._DEBUG_VALGRIND:
-            os.kill(proc.pid, signal.SIGTERM)
-        else:
-            proc.kill()
+        rc = proc.poll()
 
-        proc.wait()
+        if rc is None:
+            real_ioproc._log.info("(%s) Killing ioprocess", real_ioproc.name)
+            if IOProcess._DEBUG_VALGRIND:
+                os.kill(proc.pid, signal.SIGTERM)
+            else:
+                proc.kill()
+            rc = proc.wait()
+
+        if rc < 0:
+            real_ioproc._log.info(
+                "(%s) ioprocess was terminated by signal %s",
+                real_ioproc.name, -rc)
+        else:
+            real_ioproc._log.info(
+                "(%s) ioprocess terminated with code %s",
+                real_ioproc.name, rc)
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None:
