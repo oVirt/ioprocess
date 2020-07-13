@@ -27,6 +27,7 @@ import platform
 import pprint
 import re
 import shutil
+import signal
 import stat
 import sys
 import time
@@ -548,6 +549,24 @@ class IOProcessTests(TestCase):
             proc.close()
             self.assertFalse(os.path.exists("/proc/%d" % proc.pid),
                              "process %s did not terminate" % proc)
+
+    def test_restart_child(self):
+        proc = IOProcess(timeout=10, max_threads=5)
+        with closing(proc):
+            # Kill current child process.
+            pid = proc.pid
+            log.debug("Killing child %s", pid)
+            os.kill(pid, signal.SIGTERM)
+
+            log.debug("Waiting until child %s terminate", pid)
+            while os.path.exists("/proc/%d" % pid):
+                time.sleep(0.01)
+
+            log.debug("Waiting for new child...")
+            while not os.path.exists("/proc/%d" % proc.pid):
+                time.sleep(0.01)
+
+            log.debug("New child %s started", proc.pid)
 
     def test_close_unrelated_fds(self):
         # Make inheritable file descriptor.
