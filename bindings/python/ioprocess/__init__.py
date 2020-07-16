@@ -62,6 +62,12 @@ DEFAULT_MKDIR_MODE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
 _ANY_CPU = "0-%d" % (os.sysconf('SC_NPROCESSORS_CONF') - 1)
 
 
+# Logger for IOProcessClient and communication thread. It is used outside of
+# the IOProcessClient since the comunication thread does not have a reference
+# to the client.
+_log = logging.getLogger("IOProcessClient")
+
+
 class PollError(Exception):
     msg = "Poll error {self.error} on fd {self.fd}"
 
@@ -79,6 +85,9 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
     real_ioproc = ioproc_ref()
     if real_ioproc is None:
         return
+
+    # Keeps the name for logging in this thread.
+    ioproc_name = real_ioproc.name
 
     real_ioproc._started.set()
 
@@ -114,8 +123,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                 break
 
             if not real_ioproc._isRunning:
-                real_ioproc._log.info("(%s) Shutdown requested",
-                                      real_ioproc.name)
+                _log.info("(%s) Shutdown requested", ioproc_name)
                 break
 
             for fd, event in pollres:
@@ -137,9 +145,8 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         pendingReq.result = res
                         pendingReq.event.set()
                     else:
-                        real_ioproc._log.warning("(%s) Unknown request id %d",
-                                                 real_ioproc.name, reqId)
-
+                        _log.warning("(%s) Unknown request id %d",
+                                     ioproc_name, reqId)
                     continue
 
                 if fd == evtReciever:
@@ -166,12 +173,11 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
                         real_ioproc._pingPoller()
     except PollError as e:
         # Normal during shutdown - don't log an error.
-        real_ioproc._log.info("(%s) %s", real_ioproc.name, e)
+        _log.info("(%s) %s", ioproc_name, e)
         _cleanup(pendingRequests)
     except:
         # Unexpected error.
-        real_ioproc._log.exception(
-            "(%s) Communication thread failed", real_ioproc.name)
+        _log.exception("(%s) Communication thread failed", ioproc_name)
         _cleanup(pendingRequests)
     finally:
         os.close(readPipe)
@@ -182,7 +188,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
         rc = proc.poll()
 
         if rc is None:
-            real_ioproc._log.info("(%s) Killing ioprocess", real_ioproc.name)
+            _log.info("(%s) Killing ioprocess", ioproc_name)
             if IOProcess._DEBUG_VALGRIND:
                 os.kill(proc.pid, signal.SIGTERM)
             else:
@@ -190,13 +196,11 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
             rc = proc.wait()
 
         if rc < 0:
-            real_ioproc._log.info(
-                "(%s) ioprocess was terminated by signal %s",
-                real_ioproc.name, -rc)
+            _log.info("(%s) ioprocess was terminated by signal %s",
+                      ioproc_name, -rc)
         else:
-            real_ioproc._log.info(
-                "(%s) ioprocess terminated with code %s",
-                real_ioproc.name, rc)
+            _log.info("(%s) ioprocess terminated with code %s",
+                      ioproc_name, rc)
 
         real_ioproc = ioproc_ref()
         if real_ioproc is not None:
@@ -314,7 +318,6 @@ class IOProcess(object):
     _DEBUG_VALGRIND = False
     _TRACE_DEBUGGING = False
 
-    _log = logging.getLogger("IOProcessClient")
     _sublog = logging.getLogger("IOProcess")
     _counter = itertools.count()
 
@@ -334,7 +337,7 @@ class IOProcess(object):
         self._partialLogs = ""
         self._pid = None
 
-        self._log.info("(%s) Starting client", self.name)
+        _log.info("(%s) Starting client", self.name)
         self._run()
 
     @property
@@ -346,7 +349,7 @@ class IOProcess(object):
         return self._pid
 
     def _run(self):
-        self._log.debug("(%s) Starting ioprocess", self.name)
+        _log.debug("(%s) Starting ioprocess", self.name)
         myRead, hisWrite = os.pipe()
         hisRead, myWrite = os.pipe()
 
@@ -400,7 +403,7 @@ class IOProcess(object):
             raise
 
     def _startCommunication(self, proc, readPipe, writePipe):
-        self._log.debug("(%s) Starting communication thread", self.name)
+        _log.debug("(%s) Starting communication thread", self.name)
         self._started.clear()
 
         args = (ref(self), proc, readPipe, writePipe)
@@ -411,10 +414,10 @@ class IOProcess(object):
         )
 
         if self._started.wait(self._wait_until_ready):
-            self._log.debug("(%s) Communication thread started", self.name)
+            _log.debug("(%s) Communication thread started", self.name)
         else:
-            self._log.warning("(%s) Timeout waiting for communication thread",
-                              self.name)
+            _log.warning("(%s) Timeout waiting for communication thread",
+                         self.name)
 
     def _getRequestId(self):
         self._reqId += 1
@@ -449,8 +452,7 @@ class IOProcess(object):
             try:
                 level, logDomain, message = line.strip().split("|", 2)
             except:
-                self._log.warning("(%s) Invalid log message %r",
-                                  self.name, line)
+                _log.warning("(%s) Invalid log message %r", self.name, line)
                 continue
 
             if level == "ERROR":
@@ -636,12 +638,12 @@ class IOProcess(object):
                 return
             self._isRunning = False
 
-        self._log.info("(%s) Closing client", self.name)
+        _log.info("(%s) Closing client", self.name)
         self._pingPoller()
         os.close(self._eventFdReciever)
         os.close(self._eventFdSender)
         if sync:
-            self._log.debug("(%s) Waiting for communication thread", self.name)
+            _log.debug("(%s) Waiting for communication thread", self.name)
             self._commthread.join()
 
     def __del__(self):
