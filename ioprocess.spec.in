@@ -70,6 +70,16 @@ Python bindings for ioprocess
 
 %changelog
 
+* Sun Sep 06 2020 Eyal Shenitzky <eshenitz@redhat.com> 1.4.2-1
+- Improve logging during block size detections #BZ1777805
+- Use module logger for client logs
+- Improve child process termination
+- Skip log errors when polling fail #BZ1851893
+- Fix handling of large messages
+- Add Makefile and missing build requirements #BZ1830441
+- Generate release suffix in configure time and allow
+  configurable build locations #BZ1830441
+
 * Fri Nov 22 2019 Nir Soffer <nsoffer@redhat.com> 1.4.0-1
 - Release for el8 and s390x for oVirt 4.4
 - Drop python 2 builds
