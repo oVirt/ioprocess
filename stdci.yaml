@@ -3,6 +3,9 @@ archs:
   - x86_64:
       distributions:
         - el8
+        - el9stream:
+            runtime-requirements:
+              host_distro: newer
   - ppc64le:
       distributions:
         - el8
