@@ -1,5 +1,8 @@
 #!/bin/bash -xe
 
+# verify yaml syntax
+yamllint --no-warnings stdci.yaml
+
 # enable complex globs
 shopt -s extglob
 
