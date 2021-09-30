@@ -6,7 +6,7 @@
 # See https://docs.pagure.org/copr.copr/user_documentation.html#make-srpm
 
 srpm:
-	dnf -y install $(shell cat automation/build-artifacts.packages.fc30)
+	dnf -y install $(shell cat automation/build-artifacts.packages)
 	./autogen.sh --system
 	./configure
 	$(MAKE) srpm OUTDIR=$(outdir)
