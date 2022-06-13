@@ -9,4 +9,14 @@ srpm:
 	dnf -y install $(shell cat automation/build-artifacts.packages)
 	./autogen.sh --system
 	./configure
+
+	# Workaround for CVE-2022-24765 fix:
+	#
+	#	fatal: unsafe repository ('/path' is owned by someone else)
+	#
+	# Without this build-aux/release is confused, and all builds have same
+	# build from tag version (e.g. 2.4.4-1.fc35) instead a master build version
+	# (2.4.4-0.202204031154.git300480e.fc35).
+	git config --global --add safe.directory "$(shell pwd)"
+
 	$(MAKE) srpm OUTDIR=$(outdir)
