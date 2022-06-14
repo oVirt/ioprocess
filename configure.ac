@@ -7,8 +7,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
-AC_SUBST(RELEASE, 1)
-AC_SUBST([RELEASE_SUFFIX], [m4_esyscmd([build-aux/release-suffix])])
+AC_SUBST([RELEASE], [m4_esyscmd([build-aux/release])])
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
