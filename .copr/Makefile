@@ -7,8 +7,6 @@
 
 srpm:
 	dnf -y install $(shell cat automation/build-artifacts.packages)
-	./autogen.sh --system
-	./configure
 
 	# Workaround for CVE-2022-24765 fix:
 	#
@@ -19,4 +17,6 @@ srpm:
 	# (2.4.4-0.202204031154.git300480e.fc35).
 	git config --global --add safe.directory "$(shell pwd)"
 
+	./autogen.sh --system
+	./configure
 	$(MAKE) srpm OUTDIR=$(outdir)
