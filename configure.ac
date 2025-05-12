@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.6])
-AC_INIT([ioprocess], [1.4.3], [nsoffer@redhat.com])
+AC_PREREQ([2.69])
+AC_INIT([ioprocess],[1.4.3],[devel@ovirt.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
@@ -54,10 +54,11 @@ AC_CHECK_HEADERS([yajl/yajl_gen.h], [], [AC_MSG_ERROR([yajl headers missing])])
 AC_SUBST([IOPROCESS_DIR], ['${libexecdir}'])
 AC_PATH_PROG([TASKSET_PATH], [taskset], [/usr/bin/taskset])
 
-AC_OUTPUT([Makefile
+AC_CONFIG_FILES([Makefile
            ioprocess.spec
            .ycm_extra_conf.py
            bindings/Makefile
            bindings/python/Makefile
            bindings/python/setup.py
            src/Makefile])
+AC_OUTPUT
