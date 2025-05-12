@@ -1,3 +1,4 @@
+---
 name: build
 on:
   pull_request:
@@ -11,9 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: centos-stream-8
-            shortcut: cs8
-            container-name: el8stream
           - name: centos-stream-9
             shortcut: cs9
             container-name: el9stream
@@ -27,16 +25,22 @@ jobs:
       image: quay.io/ovirt/buildcontainer:${{ matrix.container-name }}
 
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v2
+      - name: Checkout sources
+        uses: actions/checkout@v4
 
-    - name: Perform build
-      run: |
-        ./autogen.sh --system
-        ./configure
-        make rpm OUTDIR=${{ env.ARTIFACTS_DIR }}
-        
-    - name: Upload artifacts
-      uses: ovirt/upload-rpms-action@v2
-      with:
-        directory: ${{ env.ARTIFACTS_DIR }}
+      - name: Mark repository as safe
+        run: git config --global --add safe.directory "$(pwd)"
+
+      - name: Install Build Requirements
+        run: dnf install -y $(grep BuildRequires ioprocess.spec.in |cut -f2 -d:)
+
+      - name: Perform build
+        run: |
+          ./autogen.sh --system
+          ./configure
+          make rpm OUTDIR=${{ env.ARTIFACTS_DIR }}
+
+      - name: Upload artifacts
+        uses: ovirt/upload-rpms-action@main
+        with:
+          directory: ${{ env.ARTIFACTS_DIR }}
