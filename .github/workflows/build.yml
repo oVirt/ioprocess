@@ -36,7 +36,7 @@ jobs:
 
       - name: Perform build
         run: |
-          ./autogen.sh --system
+          autoreconf -if
           ./configure
           make rpm OUTDIR=${{ env.ARTIFACTS_DIR }}
 

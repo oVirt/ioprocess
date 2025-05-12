@@ -54,7 +54,7 @@ Notes:
 
     git checkout v0.15.1
     git clean -dxf
-    ./autogen.sh --system
+    autoreconf -if
     ./configure
     make
     make rpm

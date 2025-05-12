@@ -27,6 +27,6 @@ srpm:
 	# (2.4.4-0.202204031154.git300480e.fc35).
 	git config --global --add safe.directory "$(shell pwd)"
 
-	./autogen.sh --system
+	autoreconf -if
 	./configure
 	$(MAKE) srpm OUTDIR=$(outdir)
