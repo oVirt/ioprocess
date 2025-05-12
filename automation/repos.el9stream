@@ -1,2 +1,0 @@
-# Provides yajl-devel while waiting for https://bugzilla.redhat.com/show_bug.cgi?id=2002159
-el9collection,https://download.copr.fedorainfracloud.org/results/sbonazzo/EL9Collection/centos-stream-9-$basearch/

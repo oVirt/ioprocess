@@ -6,7 +6,17 @@
 # See https://docs.pagure.org/copr.copr/user_documentation.html#make-srpm
 
 srpm:
-	dnf -y install $(shell cat automation/build-artifacts.packages)
+	dnf -y install autoconf \
+		automake \
+		dnf \
+		gcc \
+		git \
+		glib2-devel \
+		python3-devel \
+		python3-pip \
+		python3-six \
+		util-linux \
+		yajl-devel
 
 	# Workaround for CVE-2022-24765 fix:
 	#
