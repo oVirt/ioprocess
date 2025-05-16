@@ -120,7 +120,7 @@ static void logfunc(const gchar *log_domain, GLogLevelFlags log_level,
     }
 
     buff_size = snprintf(NULL, 0, format, levelStr, log_domain, message);
-    buff = calloc(sizeof(char), buff_size + 1);
+    buff = malloc(buff_size + 1);
     if (buff) {
         // if we can't allocated the buffer we can't really log
         snprintf(buff, buff_size + 1, format, levelStr, log_domain, message);
