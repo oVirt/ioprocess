@@ -22,6 +22,8 @@ BuildRequires:	automake
 BuildRequires:	gcc
 BuildRequires:	glib2-devel
 BuildRequires:	python3-devel
+BuildRequires:	python3-setuptools
+BuildRequires:	python3-build
 BuildRequires:	yajl-devel
 
 Requires:	yajl
