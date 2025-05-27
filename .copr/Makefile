@@ -14,7 +14,7 @@ srpm:
 		glib2-devel \
 		python3-devel \
 		python3-pip \
-		python3-six \
+		python3-setuptools \
 		util-linux \
 		yajl-devel
 
