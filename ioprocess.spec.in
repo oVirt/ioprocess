@@ -53,10 +53,8 @@ make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 %package -n python3-ioprocess
 Summary:	Python bindings for ioprocess
 BuildRequires:	python3
-BuildRequires:	python3-six
 BuildRequires:	util-linux
 Requires:	python3
-Requires:	python3-six
 Requires:	%{name} = %{version}
 
 %description -n python3-ioprocess

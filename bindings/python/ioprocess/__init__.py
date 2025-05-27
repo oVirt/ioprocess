@@ -1,5 +1,6 @@
 import itertools
 import os
+import queue
 from select import poll, \
     POLLERR, POLLHUP, POLLPRI, POLLOUT, POLLIN, POLLWRBAND, \
     error
@@ -14,22 +15,12 @@ from base64 import b64decode, b64encode
 import stat
 import signal
 from weakref import ref
-
-import six
-
-if six.PY2:
-    # subprocess32 improves reliability when using threads.
-    import subprocess32 as subprocess
-else:
-    import subprocess
+import subprocess
 
 try:
     from vdsm import pthread
 except ImportError:
     pthread = None
-
-Queue = six.moves.queue.Queue
-Empty = six.moves.queue.Empty
 
 elapsed_time = lambda: os.times()[4]  # The system's monotonic timer
 
@@ -156,7 +147,7 @@ def _communicate(ioproc_ref, proc, readPipe, writePipe):
 
                     try:
                         cmd, resObj = real_ioproc._commandQueue.get_nowait()
-                    except Empty:
+                    except queue.Empty:
                         continue
 
                     reqId = real_ioproc._getRequestId()
@@ -328,7 +319,7 @@ class IOProcess(object):
         self._max_queued_requests = max_queued_requests
         self._name = name or "ioprocess-%d" % next(self._counter)
         self._wait_until_ready = wait_until_ready
-        self._commandQueue = Queue()
+        self._commandQueue = queue.Queue()
         self._eventFdReciever, self._eventFdSender = os.pipe()
         self._reqId = 0
         self._isRunning = True
