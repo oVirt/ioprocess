@@ -1,6 +1,6 @@
 import os
 
-from distutils.core import setup
+from setuptools import setup
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -11,6 +11,6 @@ setup(
     license="GNU GPLv2+",
     author='Saggi Mizrahi',
     author_email='ficoos@gmail.com',
-    url='github.com/ficoos/ioprocess',
+    url='https://github.com/oVirt/ioprocess',
     packages=['ioprocess'],
 )

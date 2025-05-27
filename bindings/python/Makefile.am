@@ -14,7 +14,7 @@ dist-hook:
 	cp -R $(srcdir)/* $(distdir)/tmp
 	rm -f $(distdir)/tmp/ioprocess/config.py  # Must be regenerated
 	chmod -R a+rw $(distdir)/tmp
-	$(PYTHON) $(distdir)/tmp/setup.py --verbose sdist --dist-dir "`readlink -f $(distdir)`" --manifest "`readlink -f $(distdir)`/MANIFEST"
+	$(PYTHON) $(distdir)/tmp/setup.py --verbose sdist --dist-dir "`readlink -f $(distdir)`"
 	rm -rf $(distdir)/tmp
 	tar -xvf $(distdir)/ioprocess-$(VERSION).tar* -C "$(distdir)" --strip-components=1
 	rm $(distdir)/ioprocess-$(VERSION).tar*
