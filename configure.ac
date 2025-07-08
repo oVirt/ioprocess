@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([ioprocess],[1.4.3],[devel@ovirt.org])
+AC_INIT([ioprocess],[1.4.4],[devel@ovirt.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
