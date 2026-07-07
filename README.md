@@ -1,5 +1,4 @@
 # IOProcess
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ioprocess/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/ioprocess/)
 
 ## Why?
 
