@@ -22,18 +22,20 @@ SUBDIRS = src bindings
 
 .PHONY: srpm rpm
 
-OUTDIR = $(PWD)/build/out
-RPMDIR = $(PWD)/build/rpm
+TMPREPOS = tmp.repos
+RPMBUILD_ARGS := --define="_topdir `pwd`/$(TMPREPOS)"
+RPMBUILD_ARGS += $(if $(RELEASE_SUFFIX),--define="release_suffix $(RELEASE_SUFFIX)")
 
 srpm: dist
-	rpmbuild --define="_topdir $(RPMDIR)" \
-		--define="_srcrpmdir $(OUTDIR)" \
-		-ts $(DIST_ARCHIVES)
+	rm -rf "$(TMPREPOS)"
+	mkdir -vp $(TMPREPOS)/{SPECS,RPMS,SRPMS,SOURCES}
+	rpmbuild $(RPMBUILD_ARGS) -ts $(distdir).tar.gz
 
 rpm: srpm
-	rpmbuild --define="_topdir $(RPMDIR)" \
-		-rb "$(OUTDIR)"/ioprocess-*.src.rpm
-	mv "$(RPMDIR)"/RPMS/*/* "$(OUTDIR)"
+	rpmbuild $(RPMBUILD_ARGS) --rebuild "$(TMPREPOS)"/SRPMS/*.src.rpm
+	@echo
+	@echo "rpm available at '$(TMPREPOS)'"
+	@echo
 
 EXTRA_DIST = ioprocess.spec.in \
 	     ioprocess.spec \
@@ -48,4 +50,4 @@ all-local: ioprocess.spec \
 	   $(NULL)
 
 clean-local:
-	-rm -rf build
+	-rm -rf build tmp.repos
