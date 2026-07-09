@@ -7,7 +7,13 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
-AC_SUBST([RELEASE], [m4_esyscmd([build-aux/release])])
+AC_ARG_VAR([PACKAGE_RPM_RELEASE],
+    [RPM release field (default: 0.master for development, release number for release builds)])
+AS_IF([test -z "$PACKAGE_RPM_RELEASE"],
+    [PACKAGE_RPM_RELEASE="0.master"])
+
+AC_SUBST([PACKAGE_RPM_RELEASE])
+
 AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_ARG_ENABLE(debug,
